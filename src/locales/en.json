@@ -1,22 +1,4 @@
 {
-    "common": {
-        "next": "Next",
-        "previous": "Previous",
-        "loading": "Loading...",
-        "register": "Register",
-        "country": "Country",
-        "phone": "Phone",
-        "all": "All",
-        "cancel": "Cancel",
-        "close": "Close",
-        "readMore": "Read More",
-        "error": "Unexpected error occurred",
-        "noResults": "No results found",
-        "years": "years",
-        "search": "Search",
-        "success": "Operation successful",
-        "start": "Start Now"
-    },
     "footer": {
         "description": "Your premier platform for comprehensive veterinary care. We combine the latest technologies with top-tier veterinary expertise to ensure the health and safety of your pet.",
         "quickLinks": "Quick Links",
@@ -132,7 +114,12 @@
         "noResults": "No results found",
         "years": "years",
         "readMore": "Read More",
-        "close": "Close"
+        "close": "Close",
+        "next": "Next",
+        "previous": "Previous",
+        "country": "Country",
+        "phone": "Phone",
+        "start": "Start Now"
     },
     "nav": {
         "home": "Home",
