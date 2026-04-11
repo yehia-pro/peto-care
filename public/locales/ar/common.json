@@ -1,0 +1,22 @@
+{
+  "veterinaryDiseases": {
+    "title": "الأمراض البيطرية",
+    "subtitle": "دليل شامل عن أمراض الحيوانات الأليفة والبرية",
+    "searchPlaceholder": "ابحث عن مرض...",
+    "filterByType": "تصفية حسب النوع",
+    "filterBySpecies": "تصفية حسب النوع الحيواني",
+    "allTypes": "جميع الأنواع",
+    "viral": "فيروسي",
+    "bacterial": "بكتيري",
+    "parasitic": "طفيلي",
+    "allSpecies": "جميع الأنواع",
+    "dogs": "الكلاب",
+    "cats": "القطط",
+    "birds": "الطيور",
+    "commonDiseases": "الأمراض الشائعة",
+    "rareDiseases": "الأمراض النادرة",
+    "symptoms": "الأعراض",
+    "treatment": "العلاج",
+    "affectedSpecies": "الأنواع المعرضة"
+  }
+}

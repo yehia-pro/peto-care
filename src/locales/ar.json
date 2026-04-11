@@ -1,0 +1,956 @@
+{
+    "common": {
+        "next": "التالي",
+        "previous": "السابق",
+        "loading": "جاري التحميل...",
+        "register": "إنشاء حساب",
+        "country": "الدولة",
+        "phone": "رقم الهاتف",
+        "all": "الكل",
+        "cancel": "إلغاء",
+        "close": "إغلاق",
+        "readMore": "اقرأ المزيد",
+        "error": "حدث خطأ غير متوقع",
+        "noResults": "لا توجد نتائج",
+        "years": "سنوات",
+        "search": "بحث",
+        "success": "تمت العملية بنجاح",
+        "start": "ابدأ الآن"
+    },
+    "footer": {
+        "description": "منصتك الأولى للرعاية البيطرية الشاملة. نجمع بين أحدث التقنيات وخبرة أفضل الأطباء لضمان صحة وسلامة حيوانك الأليف.",
+        "quickLinks": "روابط سريعة",
+        "ourVets": "الأطباء البيطريين",
+        "partnerStores": "المتاجر الشريكة",
+        "products": "المنتجات",
+        "medicalEncyclopedia": "الموسوعة الطبية",
+        "ourServices": "خدماتنا",
+        "homeVisit": "كشف منزلي",
+        "emergency": "طوارئ 24/7",
+        "deliveryServices": "خدمات التوصيل",
+        "techSupport": "الدعم الفني",
+        "contactUs": "تواصل معنا",
+        "addressLine1": "القاهرة، مصر",
+        "addressLine2": "التجمع الخامس، شارع التسعين",
+        "rightsReserved": "جميع الحقوق محفوظة.",
+        "privacyPolicy": "سياسة الخصوصية",
+        "termsConditions": "الشروط والأحكام",
+        "aboutUs": "من نحن"
+    },
+    "navbar": {
+        "brand": {
+            "name": "بيتو كير",
+            "slogan": "رعاية بيطرية فائقة"
+        },
+        "menus": {
+            "home": "الرئيسية",
+            "medicalServices": "الخدمات الطبية",
+            "store": "المتجر",
+            "community": "المجتمع والتعليم"
+        },
+        "services": {
+            "all": "جميع الخدمات",
+            "allDesc": "استكشف كافة خدماتنا البيطرية",
+            "new": "جديد",
+            "vets": "الأطباء البيطريين",
+            "vetsDesc": "نخبة من أفضل الأطباء المعتمدين",
+            "featured": "مميز",
+            "appointments": "حجز المواعيد",
+            "appointmentsDesc": "احجز موعدك مع طبيبك المفضل",
+            "records": "سجلات الحيوانات",
+            "recordsDesc": "ملف طبي إلكتروني شامل لحيوانك"
+        },
+        "storeItems": {
+            "browse": "تصفح المنتجات",
+            "browseDesc": "كل ما يحتاجه حيوانك الأليف",
+            "offers": "عروض",
+            "partner": "المتاجر الشريكة",
+            "partnerDesc": "أفضل المتاجر الموثقة لدينا",
+            "track": "تتبع الطلبات",
+            "trackDesc": "تابع حالة طلباتك لحظة بلحظة",
+            "exclusive": "العروض الحصرية",
+            "exclusiveDesc": "خصومات مميزة لفترة محدودة"
+        },
+        "communityItems": {
+            "community": "مجتمع بيتو كير",
+            "communityDesc": "تفاعل مع مربين وأطباء وبادل الخبرات",
+            "encyclopedia": "الموسوعة الطبية",
+            "encyclopediaDesc": "معلومات شاملة عن الأمراض والعلاجات",
+            "comprehensive": "شامل",
+            "noPet": "لا يوجد حيوان؟",
+            "noPetDesc": "دليل المبتدئين لاختيار الحيوان المناسب ورعايته",
+            "guide": "دليل",
+            "help": "مركز المساعدة",
+            "helpDesc": "تواصل معنا للحصول على دعم فوري",
+            "emergency": "حالات الطوارئ",
+            "emergencyDesc": "أرقام وعناوين الطوارئ البيطرية",
+            "247": "24/7"
+        },
+        "search": {
+            "placeholder": "ابحث عن أطباء، خدمات، منتجات...",
+            "quickSearch": "بحث سريع",
+            "nearbyVets": "أطباء قريبون",
+            "popularProducts": "منتجات شائعة",
+            "emergency": "حالة طوارئ"
+        },
+        "notifications": {
+            "title": "الإشعارات",
+            "empty": "لا توجد إشعارات جديدة",
+            "delete": "حذف الإشعار",
+            "new": "إشعار جديد"
+        },
+        "actions": {
+            "login": "دخول",
+            "register": "حساب جديد",
+            "welcome": "أهلاً بك",
+            "dashboard": "لوحة التحكم",
+            "profile": "الملف الشخصي",
+            "transactions": "المعاملات المالية",
+            "billing": "الفواتير والمدفوعات",
+            "logout": "تسجيل الخروج"
+        }
+    },
+    "common": {
+        "welcome": "أهلاً بك",
+        "login": "تسجيل الدخول",
+        "register": "إنشاء حساب",
+        "logout": "تسجيل الخروج",
+        "search": "بحث",
+        "filter": "تصفية",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "view": "عرض",
+        "loading": "جاري التحميل...",
+        "success": "تم بنجاح",
+        "error": "خطأ",
+        "confirm": "تأكيد",
+        "yes": "نعم",
+        "no": "لا",
+        "all": "الكل",
+        "noResults": "لا توجد نتائج مطابقة",
+        "years": "سنوات",
+        "readMore": "اقرأ المزيد",
+        "close": "إغلاق"
+    },
+    "nav": {
+        "home": "الرئيسية",
+        "vets": "الأطباء البيطريون",
+        "globalVets": "الأطباء البيطريون",
+        "stores": "متاجر الحيوانات",
+        "appointments": "المواعيد",
+        "records": "سجلاتي الطبية",
+        "profile": "الملف الشخصي",
+        "dashboard": "لوحة التحكم",
+        "emergency": "الطوارئ",
+        "medicalEncyclopedia": "الموسوعة الطبية"
+    },
+    "auth": {
+        "login": {
+            "title": "مرحباً بعودتك",
+            "subtitle": "سعداء لرؤيتك مجدداً! سجل دخولك للمتابعة",
+            "submit": "تسجيل الدخول",
+            "link": "سجل الدخول"
+        },
+        "registerPage": {
+            "title": "إنشاء حساب جديد",
+            "subtitle": "انضم إلينا اليوم"
+        },
+        "registerPending": "تم إرسال طلبك للمراجعة",
+        "registerFailed": "فشل إنشاء الحساب",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "fullName": "الاسم الكامل",
+        "phone": "رقم الهاتف",
+        "countries": {
+            "cairo": "القاهرة",
+            "giza": "الجيزة",
+            "alexandria": "الإسكندرية",
+            "dakahlia": "الدقهلية",
+            "sharqia": "الشرقية",
+            "monufia": "المنوفية",
+            "qalubia": "القليوبية",
+            "gharbia": "الغربية",
+            "beheira": "البحيرة",
+            "damietta": "دمياط",
+            "portSaid": "بورسعيد",
+            "ismailia": "الإسماعيلية",
+            "suez": "السويس",
+            "matrouh": "مطروح",
+            "northSinai": "شمال سيناء",
+            "southSinai": "جنوب سيناء",
+            "redSea": "البحر الأحمر",
+            "newValley": "الوادي الجديد",
+            "fayoum": "الفيوم",
+            "beniSuef": "بني سويف",
+            "minya": "المنيا",
+            "assiut": "أسيوط",
+            "sohag": "سوهاج",
+            "qena": "قنا",
+            "luxor": "الأقصر",
+            "aswan": "أسوان"
+        },
+        "country": "المحافظة",
+        "pleaseLogin": "يرجى تسجيل الدخول أولاً",
+        "loginSuccess": "تم تسجيل الدخول بنجاح",
+        "registerSuccess": "تم إنشاء الحساب بنجاح",
+        "fillAllFields": "يرجى ملء جميع الحقول",
+        "invalidCredentials": "بيانات الدخول غير صحيحة",
+        "accountLocked": "تم قفل الحساب مؤقتاً",
+        "captchaRequired": "يرجى حل اختبار الأمان",
+        "loginFailed": "فشل تسجيل الدخول",
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "rememberEmail": "تذكر البريد الإلكتروني",
+        "hasAccount": "لديك حساب بالفعل؟",
+        "vetQuestion": "هل أنت طبيب بيطري؟",
+        "vetRegistration": "سجل كطبيب بيطري",
+        "storeRegistration": "سجل كمتجر حيوانات",
+        "register": "سجل الآن",
+        "demoEnabled": "تم تفعيل الوضع التجريبي",
+        "demoLoginSuccessCustomer": "تم الدخول كعميل تجريبي",
+        "demoLoginSuccessVet": "تم الدخول كطبيب تجريبي",
+        "demoLoginSuccessStore": "تم الدخول كمتجر تجريبي",
+        "demoLoginFailed": "فشل الدخول التجريبي"
+    },
+    "placeholders": {
+        "email": "name@example.com"
+    },
+    "captcha": {
+        "title": "سؤال الأمان",
+        "required": "أدخل الإجابة"
+    },
+    "appointments": {
+        "title": "حجز المواعيد",
+        "subtitle": "احجز موعدك بسهولة مع أفضل الأطباء البيطريين",
+        "book": "حجز موعد جديد",
+        "bookWithAI": "حجز موعد بالذكاء الاصطناعي",
+        "myAppointments": "مواعيدي ({{count}})",
+        "chooseVet": "اختر الطبيب",
+        "chooseDateTime": "اختر التاريخ والوقت",
+        "drName": "د. {{name}}",
+        "consultationFee": "رسوم الكشف",
+        "noVetsAvailable": "لا يوجد أطباء متاحين حالياً",
+        "date": "التاريخ",
+        "chooseDate": "اختر يوماً",
+        "time": "الوقت",
+        "notes": "ملاحظات إضافية",
+        "notesPlaceholder": "اكتب أي تفاصيل تود إخبار الطبيب بها...",
+        "booking": "جاري الحجز...",
+        "chooseVetFirst": "يرجى اختيار طبيب أولاً لعرض المواعيد المتاحة",
+        "pleaseLoginToBook": "يجب تسجيل الدخول لتتمكن من حجز المواعيد ومتابعتها",
+        "chat": "محادثة",
+        "pay": "دفع",
+        "noAppointmentsYet": "ليس لديك أي مواعيد محجوزة حتى الآن",
+        "bookFirst": "احجز موعدك الأول",
+        "chatWith": "محادثة مع {{name}}",
+        "appointmentTime": "الموعد: {{date}} الساعة {{time}}",
+        "noMessagesYet": "لا توجد رسائل",
+        "startChat": "ابدأ المحادثة الآن",
+        "vetResponse": "أهلاً بك، كيف يمكنني مساعدتك؟",
+        "chatPlaceholder": "اكتب رسالتك هنا...",
+        "confirmAppointment": "تأكيد الحجز",
+        "vet": "الطبيب",
+        "fee": "الرسوم",
+        "confirm": "تأكيد",
+        "reschedule": "إعادة جدولة",
+        "cancel": "إلغاء الموعد",
+        "pending": "قيد الانتظار",
+        "confirmed": "مؤكد",
+        "completed": "مكتمل",
+        "cancelled": "ملغي",
+        "reason": "سبب الزيارة",
+        "status": {
+            "pending": "قيد الانتظار",
+            "confirmed": "مؤكد",
+            "completed": "مكتمل",
+            "cancelled": "ملغي"
+        },
+        "errors": {
+            "fetchVets": "فشل تحميل قائمة الأطباء",
+            "fetchAppointments": "فشل تحميل المواعيد",
+            "fillRequired": "يرجى اختيار الطبيب والتاريخ والوقت",
+            "bookFailed": "حدث خطأ أثناء الحجز",
+            "cancelFailed": "حدث خطأ أثناء إلغاء الموعد"
+        },
+        "messages": {
+            "bookSuccess": "تم حجز الموعد بنجاح",
+            "cancelConfirm": "هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟",
+            "cancelSuccess": "تم إلغاء الموعد بنجاح"
+        }
+    },
+    "pets": {
+        "name": "اسم الحيوان",
+        "type": "النوع",
+        "breed": "السلالة",
+        "age": "العمر",
+        "summary": "ملخص الحالة",
+        "history": "التاريخ المرضي",
+        "medications": "الأدوية"
+    },
+    "reviews": {
+        "rating": "التقييم",
+        "comment": "التعليق",
+        "writeReview": "اكتب تقييم",
+        "submit": "نشر التقييم",
+        "selectRating": "يرجى اختيار التقييم",
+        "writeComment": "يرجى كتابة تعليق",
+        "writeAReview": "كتابة تقييم",
+        "title": "عنوان التقييم",
+        "summary": "ملخص التقييم",
+        "petType": "نوع الحيوان",
+        "selectPetType": "اختر نوع الحيوان",
+        "serviceType": "نوع الخدمة",
+        "selectServiceType": "اختر نوع الخدمة",
+        "shareExperience": "شاركنا تجربتك...",
+        "submitting": "جاري الإرسال...",
+        "submitError": "حدث خطأ أثناء إرسال التقييم"
+    },
+    "notifications": {
+        "title": "الإشعارات",
+        "noNotifications": "لا توجد إشعارات جديدة",
+        "vaccination": "تطعيم",
+        "medication": "دواء",
+        "checkup": "فحص دوري",
+        "appointment": "موعد",
+        "newConsultation": {
+            "header": "طلب استشارة بيطرية",
+            "subject": "استشارة بيطرية جديدة"
+        }
+    },
+    "home": {
+        "title": "رعاية بيطرية متكاملة لحيوانك الأليف",
+        "subtitle": "نجمع لك أفضل الأطباء البيطريين والمتاجر المتخصصة في مكان واحد لضمان صحة وسعادة أليفك",
+        "findVet": "ابحث عن طبيب",
+        "bookAppointment": "احجز موعد الآن",
+        "services": {
+            "title": "خدماتنا المتميزة",
+            "emergency": "طوارئ 24/7",
+            "vaccination": "تطعيمات دورية",
+            "consultation": "استشارات طبية",
+            "surgery": "جراحات متخصصة",
+            "dental": "عناية بالأسنان"
+        },
+        "vets": {
+            "title": "نخبة الأطباء البيطريين",
+            "subtitle": "فريق طبي معتمد وجاهز لخدمتك",
+            "viewAll": "عرض جميع الأطباء"
+        },
+        "contact": {
+            "title": "تواصل معنا",
+            "subtitle": "نحن هنا لمساعدتك في أي وقت"
+        },
+        "testimonials": {
+            "title": "آراء العملاء"
+        }
+    },
+    "petRecords": {
+        "title": "سجلات الحيوانات",
+        "subtitle": "سجل طبي شامل لكل حيواناتك الأليفة في مكان واحد",
+        "addNew": "أضف حيوان جديد",
+        "viewDetails": "عرض التفاصيل",
+        "myPets": "حيواناتي",
+        "addFirst": "أضف أول حيوان",
+        "summary": "الملخص",
+        "breed": "السلالة",
+        "createdAt": "تاريخ التسجيل",
+        "editTooltip": "تعديل البيانات",
+        "deleteTooltip": "حذف السجل",
+        "delete": "حذف",
+        "noRecords": "لا توجد سجلات",
+        "stats": {
+            "total": "إجمالي الحيوانات",
+            "recent": "المضافة حديثاً",
+            "registered": "المسجلة"
+        },
+        "errors": {
+            "connectionError": "تعذر الاتصال بالخادم",
+            "backendOffline": "الخادم غير متصل حالياً",
+            "network": "خطأ في الشبكة",
+            "fetchFailed": "فشل جلب البيانات",
+            "addFailed": "فشل إضافة السجل",
+            "updateFailed": "فشل تحديث البيانات",
+            "deleteFailed": "فشل حذف السجل",
+            "uploadFailed": "فشل رفع الصورة"
+        },
+        "messages": {
+            "addSuccess": "تمت الإضافة بنجاح",
+            "updateSuccess": "تم التحديث بنجاح",
+            "deleteSuccess": "تم الحذف بنجاح",
+            "uploadSuccess": "تم رفع الصورة"
+        },
+        "troubleshoot": {
+            "title": "نصائح لحل المشكلة:",
+            "tip1": "تأكد من اتصالك بالإنترنت",
+            "tip2": "حاول إعادة تحميل الصفحة",
+            "tip3": "تأكد من تشغيل الخادم (Backend)",
+            "tip4": "تواصل مع الدعم الفني إذا استمرت المشكلة"
+        },
+        "buttons": {
+            "retry": "إعادة المحاولة",
+            "save": "حفظ",
+            "saving": "جاري الحفظ...",
+            "update": "تحديث",
+            "updating": "جاري التحديث..."
+        },
+        "modals": {
+            "addTitle": "إضافة حيوان جديد",
+            "editTitle": "تعديل بيانات الحيوان"
+        },
+        "form": {
+            "petName": "اسم الحيوان",
+            "petType": "النوع",
+            "breed": "السلالة",
+            "petImage": "صورة الحيوان",
+            "imageNote": "يفضل صورة واضحة (JPG, PNG)",
+            "summary": "ملخص الحالة",
+            "history": "التاريخ المرضي",
+            "medications": "الأدوية الحالية"
+        },
+        "placeholders": {
+            "petName": "مثال: بوبي",
+            "petType": "مثال: كلب",
+            "breed": "مثال: جولدن",
+            "summary": "حالة صحية جيدة..",
+            "history": "تطعيمات كاملة..",
+            "medications": "فيتامينات.."
+        },
+        "details": {
+            "summary": "ملخص الحالة",
+            "history": "التاريخ الطبي",
+            "medications": "الأدوية",
+            "additionalInfo": "معلومات إضافية",
+            "recordId": "رقم السجل"
+        },
+        "deleteConfirm": {
+            "title": "حذف السجل",
+            "message": "هل أنت متأكد من حذف هذا السجل نهائياً؟"
+        }
+    },
+    "nopets": {
+        "title": "ليس لديك حيوان أليف؟",
+        "header": {
+            "title": "اكتشف عالم الحيوانات الأليفة",
+            "subtitle": "دليلك الشامل لاختيار ورعاية حيوانك الأليف المثالي"
+        },
+        "tips": {
+            "1": "نساعدك في اتخاذ القرار المناسب لاختيار صديقك الجديد",
+            "2": "احصل على استشارات طبية شاملة من أطباء متخصصين",
+            "3": "فحوصات دقيقة ومتقدمة لتشخيص الحالات المرضية",
+            "4": "خدمة طوارئ متاحة على مدار الساعة"
+        },
+        "contact": {
+            "formTitle": "تواصل معنا للمساعدة",
+            "desc": "فريقنا جاهز للإجابة على جميع استفساراتك",
+            "namePlaceholder": "الاسم الكامل",
+            "emailPlaceholder": "البريد الإلكتروني",
+            "messagePlaceholder": "كيف يمكننا مساعدتك؟"
+        },
+        "petTypes": {
+            "cat": "قطط",
+            "dog": "كلاب",
+            "bird": "طيور",
+            "hamster": "هامستر",
+            "turtle": "سلاحف",
+            "fish": "أسماك",
+            "horse": "خيول",
+            "livestock": "مواشي"
+        }
+    },
+    "veterinaryDiseases": {
+        "title": "الموسوعة الطبية البيطرية",
+        "subtitle": "مرجع شامل للأمراض الشائعة والنادرة وطرق علاجها",
+        "searchPlaceholder": "ابحث عن اسم المرض...",
+        "filterByType": "تصفية حسب النوع",
+        "filterBySpecies": "تصفية حسب الفصيلة",
+        "allTypes": "كل الأنواع",
+        "allSpecies": "كل الفصائل",
+        "commonDiseases": "الأمراض الشائعة",
+        "rareDiseases": "الأمراض النادرة",
+        "viral": "فيروسي",
+        "bacterial": "بكتيري",
+        "parasitic": "طفيلي",
+        "fungal": "فطري",
+        "metabolic": "استقلابي",
+        "chronic": "مزمن",
+        "urinary": "مسالك بولية",
+        "neurological": "عصبي",
+        "dogs": "الكلاب",
+        "cats": "القطط",
+        "birds": "الطيور",
+        "cows": "الأبقار",
+        "sheep": "الأغنام",
+        "goats": "الماعز",
+        "horses": "الخيول",
+        "symptoms": "الأعراض",
+        "treatment": "العلاج",
+        "onset": "فترة الحضانة/الظهور",
+        "prevention": "طرق الوقاية",
+        "description": "نبذة عن المرض",
+        "species": "الفصيلة المستهدفة",
+        "type": "النوع"
+    },
+    "emergency": {
+        "title": "حالات الطوارئ",
+        "subtitle": "دليل التصرف السريع في الحالات الحرجة",
+        "findVet": "أقرب طبيب طوارئ",
+        "selectGov": "اختر المحافظة",
+        "selectLocation": "تحديد الموقع",
+        "useLocation": "استخدم موقعي الحالي",
+        "distance": "المسافة",
+        "callNow": "اتصل الآن",
+        "noVets": "لا يوجد أطباء طوارئ مسجلين في هذه المنطقة حالياً",
+        "firstAid": "إسعافات أولية",
+        "locationStatus": {
+            "unsupported": "المتصفح لا يدعم تحديد الموقع",
+            "locating": "جاري تحديد الموقع...",
+            "found": "تم تحديد الموقع",
+            "error": "تعذر تحديد الموقع"
+        },
+        "tips": {
+            "heatStroke": "ضربة الشمس",
+            "heatStroke_step1": "انقل الحيوان لمكان بارد فوراً",
+            "heatStroke_step2": "ضع كمادات مياه فاترة (ليست مثلجة)",
+            "heatStroke_step3": "وفر مياه للشرب بكميات قليلة",
+            "heatStroke_step4": "توجه للطبيب البيطري فوراً",
+            "poisoning": "السموم",
+            "poisoning_step1": "أبعد مصدر السم عن الحيوان",
+            "poisoning_step2": "لا تجبره على القيء إلا بأمر الطبيب",
+            "poisoning_step3": "احتفظ بعينة من المادة السامة",
+            "poisoning_step4": "اتصل بالطوارئ فوراً",
+            "bleeding": "النزيف",
+            "bleeding_step1": "اضغط على الجرح بقطعة قماش نظيفة",
+            "bleeding_step2": "لا ترفع الضغط حتى يتوقف النزيف",
+            "bleeding_step3": "اطلب المساعدة الطبية",
+            "bleeding_step4": "حافظ على هدوء الحيوان",
+            "choking": "الاختناق",
+            "choking_step1": "افحص الفم بحثاً عن جسم غريب",
+            "choking_step2": "حاول إزالته بحذر اذا كان ظاهراً",
+            "choking_step3": "لا تدفع الجسم للداخل",
+            "choking_step4": "توجه للطبيب فوراً"
+        }
+    },
+    "customerServices": {
+        "title": "الخدمات الطبية",
+        "subtitle": "نقدم لك أفضل الخدمات الطبية المتخصصة لحيوانك الأليف",
+        "specializations": {
+            "title": "التخصصات المتاحة",
+            "desc": "اختر التخصص المناسب لحالة حيوانك",
+            "list": {
+                "general": "طب بيطري عام",
+                "surgery": "جراحة بيطرية",
+                "dental": "طب أسنان حيوانات",
+                "derma": "أمراض جلدية",
+                "ortho": "جراحة عظام",
+                "cardio": "أمراض قلب",
+                "birds": "طب طيور وزينة",
+                "farm": "حيوانات مزارع"
+            }
+        },
+        "buttons": {
+            "viewVets": "عرض الأطباء",
+            "bookAppointment": "حجز موعد",
+            "loginButton": "سجل الدخول للمتابعة",
+            "submit": "إرسال الطلب",
+            "submitting": "جاري الإرسال...",
+            "emergency": "حالة طوارئ",
+            "search": "بحث"
+        },
+        "loginRequired": {
+            "title": "يرجى تسجيل الدخول",
+            "desc": "يجب تسجيل الدخول للوصول إلى خدمات الاستشارة وحجز المواعيد"
+        },
+        "form": {
+            "petType": "نوع الحيوان",
+            "petType_placeholder": "اختر النوع",
+            "petName": "اسم الحيوان",
+            "petName_placeholder": "اسم الأليف",
+            "age": "العمر",
+            "age_placeholder": "مثال: سنتين",
+            "gender": "الجنس",
+            "gender_placeholder": "اختر الجنس",
+            "symptoms": "الأعراض",
+            "symptoms_placeholder": "صف الأعراض بالتفصيل...",
+            "duration": "منذ متى؟",
+            "duration_placeholder": "مثال: يومين",
+            "severity": "شدة الحالة",
+            "severity_placeholder": "اختر الشدة",
+            "previousTreatment": "علاجات سابقة",
+            "previousTreatment_placeholder": "هل تلقى علاجاً؟",
+            "medications": "أدوية حالية",
+            "medications_placeholder": "أذكر الأدوية...",
+            "urgency": "درجة الاستعجال",
+            "urgency_placeholder": "اختر الدرجة",
+            "contactMethod": "طريقة التواصل",
+            "contactMethod_placeholder": "كيف تفضل التواصل؟",
+            "additionalInfo": "معلومات إضافية",
+            "additionalInfo_placeholder": "أي تفاصيل أخرى..."
+        },
+        "messages": {
+            "loginRequired": "يرجى تسجيل الدخول أولاً",
+            "submitSuccess": "تم إرسال طلبك بنجاح",
+            "submitError": "حدث خطأ أثناء الإرسال"
+        },
+        "records": {
+            "title": "سجل طلباتي وملاحظاتي",
+            "petDetails": "بيانات الحيوان",
+            "noRequests": "لم تقم بإضافة أي طلبات أو ملاحظات حتى الآن",
+            "noRequestsDesc": "عند ملء النموذج بالأسفل وتأكيده، سيظهر هنا ليسهل عليك استخدامه لاحقاً",
+            "bookingAt": "أنت تقوم بطلب كشف عند:",
+            "willBeSentToVet": "سيتم إرسال هذا النموذج للطبيب مباشرة لتحديد موعد.",
+            "editDetails": "تعديل وعرض التفاصيل",
+            "delete": "حذف",
+            "symptomsLabel": "الأعراض:",
+            "medicationsLabel": "الأدوية:",
+            "sendToVet": "إرسال للطبيب",
+            "chooseVetToBook": "اختر طبيب للحجز",
+            "healthInfo": "الحالة الصحية",
+            "phoneCommunication": "رقم الهاتف (للتواصل)",
+            "enterPhone": "أدخل رقم الهاتف",
+            "alternatePhone": "رقم هاتف بديل (اختياري)",
+            "alternatePhonePlaceholder": "رقم بديل إن وجد",
+            "updateConfirmForm": "تحديث وتأكيد الاستمارة",
+            "cancelEdit": "إلغاء التعديل",
+            "deletedSuccess": "تم حذف السجل بنجاح",
+            "deletedError": "فشل في حذف السجل",
+            "sentSuccess": "تم إرسال طلب الكشف للطبيب",
+            "sentSuccessSuffix": "بنجاح",
+            "sentError": "فشل في إرسال الطلب للطبيب",
+            "whatsapp": "واتس أب"
+        },
+        "info": {
+            "title": "معلومات هامة",
+            "item1": "سيتم مراجعة طلبك من قبل فريق طبي",
+            "item2": "الرد عادة خلال 24 ساعة",
+            "item3": "في الحالات الطارئة اتصل بالطوارئ فوراً",
+            "item4": "تأكد من صحة بيانات الاتصال"
+        },
+        "ai": {
+            "toggle": {
+                "show": "تحليل بالذكاء الاصطناعي",
+                "hide": "إخفاء التحليل"
+            }
+        },
+        "healthInfo": "معلومات صحية"
+    },
+    "services": {
+        "generalConsultation": "استشارات عامة",
+        "diagnosticTests": "فحوصات معملية",
+        "emergency": "طوارئ",
+        "vaccination": "تطعيمات",
+        "surgery": "جراحة",
+        "dental": "أسنان"
+    },
+    "petTypes": {
+        "dog": "كلب",
+        "cat": "قطة",
+        "bird": "طائر",
+        "rabbit": "أرنب",
+        "hamster": "هامستر",
+        "fish": "أسماك",
+        "turtle": "سلحفاة",
+        "horse": "حصان",
+        "livestock": "مواشي",
+        "other": "آخر"
+    },
+    "gender": {
+        "male": "ذكر",
+        "female": "أنثى"
+    },
+    "severity": {
+        "mild": "بسيط",
+        "moderate": "متوسط",
+        "severe": "شديد",
+        "emergency": "طارئ جداً"
+    },
+    "urgency": {
+        "notUrgent": "غير عاجل",
+        "urgent": "عاجل",
+        "veryUrgent": "عاجل جداً"
+    },
+    "contact": {
+        "phone": "هاتف",
+        "email": "بريد إلكتروني",
+        "textChat": "محادثة نصية",
+        "video": "مكالمة فيديو"
+    },
+    "labels": {
+        "personality": "الشخصية",
+        "care": "نصائح الرعاية",
+        "idealOwner": "المربي المثالي",
+        "funnyTip": "معلومة طريفة"
+    },
+    "supplies": {
+        "essentials": "مستلزمات أساسية"
+    },
+    "actions": {
+        "send": "إرسال",
+        "sending": "جاري الإرسال...",
+        "close": "إغلاق",
+        "search": "بحث",
+        "update": "تحديث",
+        "creatingAccount": "جاري إنشاء الحساب..."
+    },
+    "vet": {
+        "registration": {
+            "specialization": "التخصصات البيطرية",
+            "experience": "الخبرة"
+        },
+        "governorates": "المحافظات",
+        "consultationFee": "سعر الكشف:",
+        "notSpecified": "غير محدد",
+        "rateDoctor": "تقييم الطبيب",
+        "requestConsultation": "طلب كشف / ملء استمارة",
+        "chooseNumberToCall": "اختر رقماً للاتصال:",
+        "clinicNumber": "رقم العيادة",
+        "rateVetTitle": "تقييم الطبيب البيطري",
+        "ratingSuccess": "تم إضافة التقييم بنجاح! شكراً لك.",
+        "ratingError": "حدث خطأ أثناء إضافة التقييم، الرجاء المحاولة مرة أخرى."
+    },
+    "products": {
+        "title": "متجر المنتجات",
+        "subtitle": "كل ما يحتاجه حيوانك الأليف من غذاء ودواء وإكسسوارات بمواصفات عالمية",
+        "searchPlaceholder": "ابحث عن منتج...",
+        "categories": {
+            "all": "جميع الأقسام",
+            "food": "طعام",
+            "medicine": "أدوية",
+            "hygiene": "عناية ونظافة",
+            "accessories": "إكسسوارات"
+        },
+        "labels": {
+            "supportedCurrencies": "الأسعار التقريبية بعملات أخرى:",
+            "includesAccessories": "يشمل الإكسسوارات:",
+            "essentials": "المستلزمات الأساسية:"
+        },
+        "sample": {
+            "food": "طعام قطط فاخر",
+            "foodDesc": "وجبة متكاملة العناصر الغذائية لصحة أليفك"
+        },
+        "mockData": [
+            {
+                "id": "1",
+                "name": "دراي فود رويال كانين",
+                "category": "طعام",
+                "description": "غذاء متوازن للقطط البالغة يعزز صحة الجهاز الهضمي والفرو.",
+                "priceEGP": 450,
+                "accessories": [],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&height=600&fit=crop",
+                "storeName": "متجر الأصدقاء"
+            },
+            {
+                "id": "2",
+                "name": "شامبو مضاد للفطريات",
+                "category": "عناية ونظافة",
+                "description": "شامبو طبي للعناية بجلد الحيوانات الأليفة وحمايتها من الحشرات.",
+                "priceEGP": 120,
+                "accessories": [],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=800&height=600&fit=crop",
+                "storeName": "صيدلية البيطري"
+            },
+            {
+                "id": "3",
+                "name": "طوق ذكي للكلاب",
+                "category": "إكسسوارات",
+                "description": "طوق مزود بتكنولوجيا GPS لتتبع حيوانك الأليف في أي مكان.",
+                "priceEGP": 800,
+                "accessories": ["بطارية إضافية", "شاحن USB"],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&height=600&fit=crop",
+                "storeName": "تكنولوجيا الحيوان"
+            }
+        ]
+    },
+    "cart": {
+        "addToCart": "أضف للسلة",
+        "added": "تمت الإضافة للسلة"
+    },
+    "pages": {
+        "partnerStores": {
+            "title": "المتاجر الشريكة",
+            "desc": "تصفح قائمة المتاجر المعتمدة لدينا واحصل على أفضل المنتجات لأليفك"
+        },
+        "delivery": {
+            "tracking": {
+                "title": "تتبع الطلب",
+                "desc": "تابع حالة طلبك وموقع السائق لحظة بلحظة",
+                "orderIdPlaceholder": "أدخل رقم الطلب"
+            }
+        }
+    },
+    "status": {
+        "loading": "جاري التحميل...",
+        "noStores": "لا توجد متاجر متاحة حالياً",
+        "label": "حالة الطلب",
+        "unavailable": "غير متاح",
+        "waitingDriver": "في انتظار السائق..."
+    },
+    "rating": {
+        "title": "قيم تجربتك",
+        "commentPlaceholder": "شاركنا رأيك...",
+        "submit": "إرسال التقييم"
+    },
+    "fields": {
+        "city": "المدينة / المحافظة",
+        "fullName": "الاسم الكامل",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "role": "الدور",
+        "roleUser": "مستخدم",
+        "roleVet": "طبيب بيطري",
+        "rolePetstore": "متجر حيوانات",
+        "syndicateCard": "صورة كارنيه النقابة",
+        "idFront": "صورة الهوية (الوجه)",
+        "idBack": "صورة الهوية (الظهر)",
+        "commercialReg": "صورة السجل التجاري"
+    },
+    "validation": {
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "البريد الإلكتروني غير صحيح",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "passwordMin": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+        "passwordMismatch": "كلمات المرور غير متطابقة",
+        "fullNameRequired": "الاسم الكامل مطلوب"
+    },
+    "dashboard": {
+        "welcomeWithName": "مرحباً {{name}}",
+        "hello": "مرحباً",
+        "accountOverview": "نظرة عامة على حسابك",
+        "messages": "الرسائل",
+        "recentActivity": "النشاط الأخير",
+        "viewAll": "عرض الكل",
+        "stats": {
+            "unreadMessages": "رسائل غير مقروءة",
+            "totalPets": "إجمالي الحيوانات",
+            "registeredPets": "حيوانات مسجلة",
+            "upcomingAppointments": "المواعيد القادمة",
+            "within30Days": "خلال 30 يوماً",
+            "totalAppointments": "إجمالي المواعيد",
+            "completed": "مكتملة"
+        }
+    },
+    "petstore": {
+        "title": "إدارة المتجر",
+        "edit": "تعديل بيانات المتجر",
+        "update": {
+            "success": "تم تحديث بيانات المتجر بنجاح",
+            "failed": "فشل تحديث بيانات المتجر"
+        },
+        "product": {
+            "added": "تم إضافة المنتج بنجاح",
+            "addFailed": "فشل إضافة المنتج",
+            "confirmDelete": "هل أنت متأكد من حذف هذا المنتج؟",
+            "deleted": "تم حذف المنتج بنجاح"
+        },
+        "errors": {
+            "uploadImage": "فشل رفع الصورة"
+        }
+    },
+    "doctor": {
+        "title": "لوحة تحكم الطبيب",
+        "settings": {
+            "title": "إعدادات العيادة"
+        },
+        "stats": {
+            "totalPatients": "إجمالي المرضى",
+            "products": "المنتجات",
+            "consultations": "الاستشارات",
+            "rating": "التقييم العام",
+            "revenue": "الأرباح",
+            "upcoming": "مواعيد قادمة",
+            "newPatients": "مرضى جدد",
+            "views": "إجمالي المشاهدات",
+            "fromLastMonth": "من الشهر الماضي",
+            "likes": "إجمالي الإعجابات",
+            "videos": "إجمالي الفيديوهات",
+            "publishedVideos": "فيديوهات منشورة",
+            "appointmentsThisMonth": "مواعيد هذا الشهر",
+            "scheduledAppointments": "مواعيد مجدولة",
+            "thisMonth": "هذا الشهر"
+        },
+        "bookings": {
+            "title": "سجل الحجوزات",
+            "description": "إدارة جميع حجوزاتك ومواعيدك مع المرضى",
+            "goToBookings": "الذهاب إلى الحجوزات"
+        },
+        "modals": {
+            "uploadVideo": {
+                "title": "رفع فيديو"
+            }
+        }
+    },
+    "messages": {
+        "passwordMatch": "متطابقة",
+        "uploadSyndicateMissing": "يرجى رفع صورة كارنيه النقابة والهوية",
+        "uploadCommercialMissing": "يرجى رفع صورة السجل التجاري"
+    },
+    "registration": {
+        "vet": {
+            "title": "تسجيل طبيب بيطري",
+            "subtitle": "انضم إلى شبكة الأطباء البيطريين في منصة بيتو كير",
+            "note": "بعد التسجيل، سيتم مراجعة بياناتك وسيتواصل معك الفريق خلال 24-48 ساعة. يرجى رفع المستندات المطلوبة بشكل واضح.",
+            "fullName": "الاسم الكامل",
+            "fullNamePlaceholder": "مثال: د. أحمد محمد علي",
+            "syndicateCard": "كارنيه النقابة البيطرية (إلزامي)",
+            "idFront": "صورة البطاقة - وجه (إلزامي)",
+            "idBack": "صورة البطاقة - ظهر (إلزامي)",
+            "qualification": "المؤهل العلمي والتخصص",
+            "qualificationPlaceholder": "مثال: بكالوريوس الطب البيطري - جامعة القاهرة، تخصص: أمراض القطط والكلاب",
+            "experience": "سنوات الخبرة",
+            "experienceYearsPlaceholder": "مثال: 5",
+            "terms": "أوافق على شروط وأحكام الاستخدام",
+            "uploadDocs": "المستندات المطلوبة"
+        },
+        "petStore": {
+            "title": "تسجيل متجر شريك",
+            "subtitle": "انضم كمتجر شريك في منصة بيتو كير، وزد مبيعاتك وعملائك.",
+            "step1": "البيانات الأساسية",
+            "step2": "الموقع والتواصل",
+            "step3": "الخدمات الإضافية",
+            "storeName": "اسم المتجر",
+            "businessLicense": "رقم السجل التجاري",
+            "storeType": "نوع النشاط",
+            "types": {
+                "pet_shop": "متجر حيوانات أليفة (شامل)",
+                "pet_supplies": "منتجات ومستلزمات",
+                "veterinary_pharmacy": "صيدلية بيطرية",
+                "grooming": "صالون حلاقة ورعاية",
+                "boarding": "فندق/استضافة حيوانات"
+            },
+            "licenseFile": "صورة السجل التجاري (إلزامي)",
+            "idFront": "صورة البطاقة - وجه (اختياري)",
+            "idBack": "صورة البطاقة - ظهر (اختياري)",
+            "description": "نبذة عن المتجر (اختياري)",
+            "descriptionPlaceholder": "مثال: نوفر أفضل أنواع طعام الحيوانات من الماركات العالمية...",
+            "getCurrentLocation": "استخدام موقعي الحالي",
+            "openingTime": "وقت فتح المتجر",
+            "closingTime": "وقت الإغلاق",
+            "website": "الموقع الإلكتروني (اختياري)",
+            "whatsapp": "رقم الواتساب (اختياري)",
+            "services": "أقسام المتجر والخدمات المتوفرة",
+            "importantNoteBody": "بعد التسجيل، سيكون حسابك قيد المراجعة. لا يمكنك إدراج المنتجات حتى يوافق الإدارة على حسابك."
+        },
+        "errors": {
+            "general": "يرجى ملء جميع الحقول الإلزامية المطلوبة بشكل صحيح.",
+            "licenseRequired": "يجب رفع صورة السجل التجاري لتأكيد هوية المتجر",
+            "fileRequired": "يرجى رفع جميع المستندات المطلوبة (كارنيه النقابة وصور الهوية)",
+            "fileInvalid": "الملف غير صالح. يرجى رفع صورة (JPG/PNG) أو PDF بحجم لا يتجاوز 10 ميجا"
+        },
+        "messages": {
+            "success": "تم التسجيل بنجاح! سيتم مراجعة بياناتك والتواصل معك قريباً.",
+            "pending": "تم التسجيل! حسابك قيد المراجعة من الإدارة. ستصلك رسالة بريد إلكتروني عند الموافقة.",
+            "registering": "جاري الإرسال..."
+        }
+    },
+    "favorites": {
+        "title": "مفضلتي",
+        "subtitle": "المنتجات التي نالت إعجابك",
+        "empty": "قائمة المفضلة فارغة",
+        "emptyDesc": "تصفح منتجاتنا وأضف ما يعجبك إلى المفضلة للعودة إليه لاحقاً.",
+        "added": "تمت الإضافة للمفضلة",
+        "removed": "تم الإزالة من المفضلة"
+    }
+}

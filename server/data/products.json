@@ -1,0 +1,42 @@
+[
+  {
+    "id": "4rgtjsyf036",
+    "storeId": "69225c19dc0f76eed1360542",
+    "name": "Test Product 2",
+    "description": "Test 2",
+    "price": 20,
+    "category": "food",
+    "imageUrl": "",
+    "createdAt": "2025-11-30T18:23:09.454Z"
+  },
+  {
+    "id": "8cuox5u1hvv",
+    "storeId": "69225c19dc0f76eed1360542",
+    "name": "اختبار المنتج",
+    "description": "وصف تجريبي",
+    "price": 199,
+    "category": "food",
+    "imageUrl": "",
+    "createdAt": "2025-12-01T15:40:41.320Z"
+  },
+  {
+    "id": "iuc2v674gu",
+    "storeId": "69225c19dc0f76eed1360542",
+    "name": "تجربة ",
+    "description": "",
+    "price": 500,
+    "category": "food",
+    "imageUrl": "/uploads/1765312702808-Gemini_Generated_Image_oprdb1oprdb1oprd.png",
+    "createdAt": "2025-12-09T20:38:23.003Z"
+  },
+  {
+    "id": "edjsuwdq8lf",
+    "storeId": "69ce718709e23f8c89b6aa82",
+    "name": "اكل قطط ",
+    "description": "dry food ",
+    "price": 94,
+    "category": "food",
+    "imageUrl": "/uploads/1775138059085-61b7M6GpL6L._AC_SX300_SY300_QL70_ML2_.jpg",
+    "createdAt": "2026-04-02T13:54:19.221Z"
+  }
+]

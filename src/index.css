@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+/* @type {import('tailwindcss').Config} */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #1f2937;
+  /* neutral-800 */
+  background-color: #f8fafc;
+  /* slate-50 - cleaner medical look */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Veterinary Color Palette Overrides */
+:root {
+  --color-vet-primary: #0e7490;
+  /* Cyan-700 (Medical Blue/Teal) */
+  --color-vet-secondary: #059669;
+  /* Emerald-600 (Health Green) */
+  --color-vet-accent: #f59e0b;
+  /* Amber-500 (Trust/Warmth) */
+}
+
+[dir="rtl"] {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  position: relative;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(14, 116, 144, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.03) 0%, transparent 40%);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            GLASSMORPHISM UTILS                             */
+/* -------------------------------------------------------------------------- */
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
+  border-color: rgba(14, 116, 144, 0.3);
+  /* Vet Primary Border */
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              PREMIUM GRADIENTS                             */
+/* -------------------------------------------------------------------------- */
+
+.bg-vet-gradient {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 50%, #059669 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #0e7490, #059669);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to right, #d97706, #f59e0b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 PAY ANIMATIONS                             */
+/* -------------------------------------------------------------------------- */
+
+@keyframes float-gentle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Form Elements */
+input,
+select,
+textarea {
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #0e7490;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.1);
+  outline: none;
+}

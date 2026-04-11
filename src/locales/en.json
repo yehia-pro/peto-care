@@ -1,0 +1,898 @@
+{
+    "common": {
+        "next": "Next",
+        "previous": "Previous",
+        "loading": "Loading...",
+        "register": "Register",
+        "country": "Country",
+        "phone": "Phone",
+        "all": "All",
+        "cancel": "Cancel",
+        "close": "Close",
+        "readMore": "Read More",
+        "error": "Unexpected error occurred",
+        "noResults": "No results found",
+        "years": "years",
+        "search": "Search",
+        "success": "Operation successful",
+        "start": "Start Now"
+    },
+    "footer": {
+        "description": "Your premier platform for comprehensive veterinary care. We combine the latest technologies with top-tier veterinary expertise to ensure the health and safety of your pet.",
+        "quickLinks": "Quick Links",
+        "ourVets": "Veterinarians",
+        "partnerStores": "Partner Stores",
+        "products": "Products",
+        "medicalEncyclopedia": "Medical Encyclopedia",
+        "ourServices": "Our Services",
+        "homeVisit": "Home Visit",
+        "emergency": "24/7 Emergency",
+        "deliveryServices": "Delivery Services",
+        "techSupport": "Technical Support",
+        "contactUs": "Contact Us",
+        "addressLine1": "Cairo, Egypt",
+        "addressLine2": "5th Settlement, 90th Street",
+        "rightsReserved": "All rights reserved.",
+        "privacyPolicy": "Privacy Policy",
+        "termsConditions": "Terms & Conditions",
+        "aboutUs": "About Us"
+    },
+    "navbar": {
+        "brand": {
+            "name": "Petto Care",
+            "slogan": "Premium Vet Care"
+        },
+        "menus": {
+            "home": "Home",
+            "medicalServices": "Medical Services",
+            "store": "Pet Store",
+            "community": "Community & Education"
+        },
+        "services": {
+            "all": "All Services",
+            "allDesc": "Explore all our veterinary services",
+            "new": "New",
+            "vets": "Veterinarians",
+            "vetsDesc": "Elite certified doctors",
+            "featured": "Featured",
+            "appointments": "Book Appointments",
+            "appointmentsDesc": "Book with your preferred doctor",
+            "records": "Pet Records",
+            "recordsDesc": "Comprehensive electronic medical record"
+        },
+        "storeItems": {
+            "browse": "Browse Products",
+            "browseDesc": "Everything your pet needs",
+            "offers": "Offers",
+            "partner": "Partner Stores",
+            "partnerDesc": "Our trusted partner stores",
+            "track": "Track Orders",
+            "trackDesc": "Track your orders live",
+            "exclusive": "Exclusive Offers",
+            "exclusiveDesc": "Special limited-time discounts"
+        },
+        "communityItems": {
+            "community": "Petto Care Community",
+            "communityDesc": "Interact with breeders and doctors",
+            "encyclopedia": "Medical Encyclopedia",
+            "encyclopediaDesc": "Comprehensive info on diseases",
+            "comprehensive": "Comprehensive",
+            "noPet": "No Pet?",
+            "noPetDesc": "Beginner's guide to choosing a pet",
+            "guide": "Guide",
+            "help": "Help Center",
+            "helpDesc": "Contact us for immediate support",
+            "emergency": "Emergencies",
+            "emergencyDesc": "Veterinary emergency contacts",
+            "247": "24/7"
+        },
+        "search": {
+            "placeholder": "Search doctors, services, products...",
+            "quickSearch": "Quick Search",
+            "nearbyVets": "Nearby Vets",
+            "popularProducts": "Popular Products",
+            "emergency": "Emergency Case"
+        },
+        "notifications": {
+            "title": "Notifications",
+            "empty": "No new notifications",
+            "delete": "Delete Notification",
+            "new": "New Notification"
+        },
+        "actions": {
+            "login": "Login",
+            "register": "Sign Up",
+            "welcome": "Welcome",
+            "dashboard": "Dashboard",
+            "profile": "Profile",
+            "transactions": "Financial Transactions",
+            "billing": "Billing & Payments",
+            "logout": "Logout"
+        }
+    },
+    "common": {
+        "welcome": "Welcome",
+        "login": "Login",
+        "register": "Sign Up",
+        "logout": "Logout",
+        "search": "Search",
+        "filter": "Filter",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "view": "View",
+        "loading": "Loading...",
+        "success": "Success",
+        "error": "Error",
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No",
+        "all": "All",
+        "noResults": "No results found",
+        "years": "years",
+        "readMore": "Read More",
+        "close": "Close"
+    },
+    "nav": {
+        "home": "Home",
+        "vets": "Veterinarians",
+        "globalVets": "Pet Vets",
+        "stores": "Pet Stores",
+        "appointments": "Appointments",
+        "records": "Medical Records",
+        "profile": "Profile",
+        "dashboard": "Dashboard",
+        "emergency": "Emergency",
+        "medicalEncyclopedia": "Medical Encyclopedia"
+    },
+    "auth": {
+        "login": {
+            "title": "Welcome Back",
+            "subtitle": "Happy to see you again! Log in to continue",
+            "submit": "Login",
+            "link": "Log In"
+        },
+        "registerPage": {
+            "title": "Create a New Account",
+            "subtitle": "Join us today"
+        },
+        "registerPending": "Your request has been sent for review",
+        "registerFailed": "Failed to create account",
+        "email": "Email Address",
+        "password": "Password",
+        "fullName": "Full Name",
+        "phone": "Phone Number",
+        "countries": {
+            "cairo": "Cairo",
+            "giza": "Giza",
+            "alexandria": "Alexandria",
+            "dakahlia": "Dakahlia",
+            "sharqia": "Sharqia",
+            "monufia": "Monufia",
+            "qalubia": "Qalubia",
+            "gharbia": "Gharbia",
+            "beheira": "Beheira",
+            "damietta": "Damietta",
+            "portSaid": "Port Said",
+            "ismailia": "Ismailia",
+            "suez": "Suez",
+            "matrouh": "Matrouh",
+            "northSinai": "North Sinai",
+            "southSinai": "South Sinai",
+            "redSea": "Red Sea",
+            "newValley": "New Valley",
+            "fayoum": "Fayoum",
+            "beniSuef": "Beni Suef",
+            "minya": "Minya",
+            "assiut": "Assiut",
+            "sohag": "Sohag",
+            "qena": "Qena",
+            "luxor": "Luxor",
+            "aswan": "Aswan"
+        },
+        "country": "Governorate",
+        "pleaseLogin": "Please login first",
+        "loginSuccess": "Logged in successfully",
+        "registerSuccess": "Account created successfully",
+        "fillAllFields": "Please fill in all fields",
+        "invalidCredentials": "Invalid credentials",
+        "accountLocked": "Account temporarily locked",
+        "captchaRequired": "Please solve the security check",
+        "loginFailed": "Login failed",
+        "forgotPassword": "Forgot Password?",
+        "rememberEmail": "Remember email",
+        "hasAccount": "Already have an account?",
+        "vetQuestion": "Are you a veterinarian?",
+        "vetRegistration": "Register as Vet",
+        "storeRegistration": "Register as Pet Store",
+        "register": "Register Now",
+        "demoEnabled": "Demo mode enabled",
+        "demoLoginSuccessCustomer": "Logged in as demo customer",
+        "demoLoginSuccessVet": "Logged in as demo vet",
+        "demoLoginSuccessStore": "Logged in as demo store",
+        "demoLoginFailed": "Demo login failed"
+    },
+    "placeholders": {
+        "email": "name@example.com"
+    },
+    "captcha": {
+        "title": "Security Question",
+        "required": "Enter the answer"
+    },
+    "appointments": {
+        "title": "Book Appointments",
+        "subtitle": "Book your appointment easily with top veterinarians",
+        "book": "Book New Appointment",
+        "bookWithAI": "Book with AI",
+        "myAppointments": "My Appointments ({{count}})",
+        "chooseVet": "Choose Veterinarian",
+        "chooseDateTime": "Choose Date & Time",
+        "drName": "Dr. {{name}}",
+        "consultationFee": "Consultation Fee",
+        "noVetsAvailable": "No veterinarians available",
+        "date": "Date",
+        "chooseDate": "Choose Date",
+        "time": "Time",
+        "notes": "Additional Notes",
+        "notesPlaceholder": "Write any details for the doctor...",
+        "booking": "Booking...",
+        "chooseVetFirst": "Please select a vet first to view available appointments",
+        "pleaseLoginToBook": "Must login to book and track appointments",
+        "chat": "Chat",
+        "pay": "Pay",
+        "noAppointmentsYet": "No appointments booked yet",
+        "bookFirst": "Book your first appointment",
+        "chatWith": "Chat with {{name}}",
+        "appointmentTime": "Appointment: {{date}} at {{time}}",
+        "noMessagesYet": "No messages yet",
+        "startChat": "Start chat now",
+        "vetResponse": "Hello, how can I help you?",
+        "chatPlaceholder": "Write your message here...",
+        "confirmAppointment": "Confirm Booking",
+        "vet": "Veterinarian",
+        "fee": "Fee",
+        "confirm": "Confirm",
+        "reschedule": "Reschedule",
+        "cancel": "Cancel",
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "reason": "Reason for visit",
+        "status": {
+            "pending": "Pending",
+            "confirmed": "Confirmed",
+            "completed": "Completed",
+            "cancelled": "Cancelled"
+        },
+        "errors": {
+            "fetchVets": "Failed to load doctors",
+            "fetchAppointments": "Failed to load appointments",
+            "fillRequired": "Please select a vet, date and time",
+            "bookFailed": "Error occurred during booking",
+            "cancelFailed": "Error occurred during cancellation"
+        },
+        "messages": {
+            "bookSuccess": "Appointment booked successfully",
+            "cancelConfirm": "Are you sure you want to cancel this appointment?",
+            "cancelSuccess": "Canceled successfully"
+        }
+    },
+    "pets": {
+        "name": "Pet Name",
+        "type": "Type",
+        "breed": "Breed",
+        "age": "Age",
+        "summary": "Health Summary",
+        "history": "Medical History",
+        "medications": "Medications"
+    },
+    "reviews": {
+        "rating": "Rating",
+        "comment": "Comment",
+        "writeReview": "Write a review",
+        "submit": "Submit Review",
+        "selectRating": "Please select a rating",
+        "writeComment": "Please write a comment",
+        "writeAReview": "Write a Review",
+        "title": "Review Title",
+        "summary": "Review Summary",
+        "petType": "Pet Type",
+        "selectPetType": "Select Pet Type",
+        "serviceType": "Service Type",
+        "selectServiceType": "Select Service Type",
+        "shareExperience": "Share your experience...",
+        "submitting": "Submitting...",
+        "submitError": "Error submitting review"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "noNotifications": "No new notifications",
+        "vaccination": "Vaccination",
+        "medication": "Medication",
+        "checkup": "Checkup",
+        "appointment": "Appointment",
+        "newConsultation": {
+            "header": "Vet Consultation Request",
+            "subject": "New Vet Consultation"
+        }
+    },
+    "home": {
+        "title": "Comprehensive Veterinary Care",
+        "subtitle": "Bringing top vets and stores together for your pet health",
+        "findVet": "Find a Vet",
+        "bookAppointment": "Book Appointment",
+        "services": {
+            "title": "Premium Services",
+            "emergency": "24/7 Emergency",
+            "vaccination": "Vaccinations",
+            "consultation": "Medical Consultations",
+            "surgery": "Specialized Surgery",
+            "dental": "Dental Care"
+        },
+        "vets": {
+            "title": "Top Veterinarians",
+            "subtitle": "Certified medical team at your service",
+            "viewAll": "View all Vets"
+        },
+        "contact": {
+            "title": "Contact Us",
+            "subtitle": "We are here to help anytime"
+        },
+        "testimonials": {
+            "title": "Customer Testimonials"
+        }
+    },
+    "petRecords": {
+        "title": "Pet Records",
+        "subtitle": "Comprehensive medical record for all your pets",
+        "addNew": "Add New Pet",
+        "viewDetails": "View Details",
+        "myPets": "My Pets",
+        "addFirst": "Add your first pet",
+        "summary": "Summary",
+        "breed": "Breed",
+        "createdAt": "Registered On",
+        "editTooltip": "Edit details",
+        "deleteTooltip": "Delete record",
+        "delete": "Delete",
+        "noRecords": "No records found",
+        "stats": {
+            "total": "Total Pets",
+            "recent": "Recently Added",
+            "registered": "Registered"
+        },
+        "errors": {
+            "connectionError": "Could not connect to server",
+            "backendOffline": "Backend is offline",
+            "network": "Network Error",
+            "fetchFailed": "Failed to fetch data",
+            "addFailed": "Failed to add record",
+            "updateFailed": "Failed to update record",
+            "deleteFailed": "Failed to delete record",
+            "uploadFailed": "Failed to upload image"
+        },
+        "messages": {
+            "addSuccess": "Added successfully",
+            "updateSuccess": "Updated successfully",
+            "deleteSuccess": "Deleted successfully",
+            "uploadSuccess": "Image uploaded"
+        },
+        "troubleshoot": {
+            "title": "Troubleshoot tips:",
+            "tip1": "Check internet connexion",
+            "tip2": "Try reloading",
+            "tip3": "Ensure backend is running",
+            "tip4": "Contact support if issue persists"
+        },
+        "buttons": {
+            "retry": "Retry",
+            "save": "Save",
+            "saving": "Saving...",
+            "update": "Update",
+            "updating": "Updating..."
+        },
+        "modals": {
+            "addTitle": "Add New Pet",
+            "editTitle": "Edit Pet Details"
+        },
+        "form": {
+            "petName": "Pet Name",
+            "petType": "Type",
+            "breed": "Breed",
+            "petImage": "Pet Image",
+            "imageNote": "Clear image preferred (JPG, PNG)",
+            "summary": "Health Summary",
+            "history": "Medical History",
+            "medications": "Current Medications"
+        },
+        "placeholders": {
+            "petName": "e.g., Bobby",
+            "petType": "e.g., Dog",
+            "breed": "e.g., Golden",
+            "summary": "Good health...",
+            "history": "Fully vaccinated...",
+            "medications": "Vitamins..."
+        },
+        "details": {
+            "summary": "Health Summary",
+            "history": "Medical History",
+            "medications": "Medications",
+            "additionalInfo": "Additional Info",
+            "recordId": "Record ID"
+        },
+        "deleteConfirm": {
+            "title": "Delete Record",
+            "message": "Are you sure you want to permanently delete this record?"
+        }
+    },
+    "nopets": {
+        "title": "Don't have a pet?",
+        "header": {
+            "title": "Discover the Pet World",
+            "subtitle": "Comprehensive guide to choosing your ideal pet"
+        },
+        "tips": {
+            "1": "We help you make the right choice",
+            "2": "Get comprehensive medical consultations",
+            "3": "Accurate diagnostic examinations",
+            "4": "24h emergency service"
+        },
+        "contact": {
+            "formTitle": "Contact us for help",
+            "desc": "Our team is ready to answer questions",
+            "namePlaceholder": "Full Name",
+            "emailPlaceholder": "Email Address",
+            "messagePlaceholder": "How can we help?"
+        },
+        "petTypes": {
+            "cat": "Cats",
+            "dog": "Dogs",
+            "bird": "Birds",
+            "hamster": "Hamsters",
+            "turtle": "Turtles",
+            "fish": "Fish",
+            "horse": "Horses",
+            "livestock": "Livestock"
+        }
+    },
+    "veterinaryDiseases": {
+        "title": "Veterinary Medical Encyclopedia",
+        "subtitle": "Comprehensive reference for pet diseases and treatments",
+        "searchPlaceholder": "Search disease name...",
+        "filterByType": "Filter by type",
+        "filterBySpecies": "Filter by species",
+        "allTypes": "All Types",
+        "allSpecies": "All Species",
+        "commonDiseases": "Common Diseases",
+        "rareDiseases": "Rare Diseases",
+        "viral": "Viral",
+        "bacterial": "Bacterial",
+        "parasitic": "Parasitic",
+        "fungal": "Fungal",
+        "metabolic": "Metabolic",
+        "chronic": "Chronic",
+        "urinary": "Urinary",
+        "neurological": "Neurological",
+        "dogs": "Dogs",
+        "cats": "Cats",
+        "birds": "Birds",
+        "cows": "Cows",
+        "sheep": "Sheep",
+        "goats": "Goats",
+        "horses": "Horses",
+        "symptoms": "Symptoms",
+        "treatment": "Treatment",
+        "onset": "Onset/Incubation",
+        "prevention": "Prevention",
+        "description": "Description",
+        "species": "Target Species",
+        "type": "Type"
+    },
+    "emergency": {
+        "title": "Emergencies",
+        "subtitle": "Rapid response guide for critical cases",
+        "findVet": "Nearest Emergency Vet",
+        "selectGov": "Select Governorate",
+        "selectLocation": "Select Location",
+        "useLocation": "Use My Location",
+        "distance": "Distance",
+        "callNow": "Call Now",
+        "noVets": "No emergency vets available in this area right now",
+        "firstAid": "First Aid",
+        "locationStatus": {
+            "unsupported": "Browser doesn't support geolocation",
+            "locating": "Locating...",
+            "found": "Location found",
+            "error": "Could not determine location"
+        },
+        "tips": {
+            "heatStroke": "Heat Stroke",
+            "heatStroke_step1": "Move pet to a cool place immediately",
+            "heatStroke_step2": "Apply lukewarm water compresses",
+            "heatStroke_step3": "Provide small amounts of water",
+            "heatStroke_step4": "Head to the vet immediately",
+            "poisoning": "Poisoning",
+            "poisoning_step1": "Remove poison source",
+            "poisoning_step2": "Do not induce vomiting unless told by vet",
+            "poisoning_step3": "Keep a sample of the toxic substance",
+            "poisoning_step4": "Call emergency immediately",
+            "bleeding": "Bleeding",
+            "bleeding_step1": "Press wound with a clean cloth",
+            "bleeding_step2": "Do not release pressure until it stops",
+            "bleeding_step3": "Seek medical help",
+            "bleeding_step4": "Keep pet calm",
+            "choking": "Choking",
+            "choking_step1": "Check mouth for foreign objects",
+            "choking_step2": "Carefully remove if visible",
+            "choking_step3": "Do not push it further in",
+            "choking_step4": "Head to vet immediately"
+        }
+    },
+    "customerServices": {
+        "title": "Medical Services",
+        "subtitle": "Best specialized medical services for your pet",
+        "specializations": {
+            "title": "Available Specializations",
+            "desc": "Choose the right specialization",
+            "list": {
+                "general": "General Practice",
+                "surgery": "Veterinary Surgery",
+                "dental": "Dental Care",
+                "derma": "Dermatology",
+                "ortho": "Orthopedics",
+                "cardio": "Cardiology",
+                "birds": "Avian Medicine",
+                "farm": "Farm Animals"
+            }
+        },
+        "buttons": {
+            "viewVets": "View Vets",
+            "bookAppointment": "Book Appointment",
+            "loginButton": "Login to Continue",
+            "submit": "Submit Request",
+            "submitting": "Submitting...",
+            "emergency": "Emergency Case",
+            "search": "Search"
+        },
+        "loginRequired": {
+            "title": "Login Required",
+            "desc": "You must be logged in to access consultation services"
+        },
+        "form": {
+            "petType": "Pet Type",
+            "petType_placeholder": "Select type",
+            "petName": "Pet Name",
+            "petName_placeholder": "Pet's name",
+            "age": "Age",
+            "age_placeholder": "e.g., 2 years",
+            "gender": "Gender",
+            "gender_placeholder": "Select gender",
+            "symptoms": "Symptoms",
+            "symptoms_placeholder": "Describe symptoms...",
+            "duration": "Since when?",
+            "duration_placeholder": "e.g., 2 days",
+            "severity": "Severity",
+            "severity_placeholder": "Select severity",
+            "previousTreatment": "Previous Treatment",
+            "previousTreatment_placeholder": "Any previous care?",
+            "medications": "Current Medications",
+            "medications_placeholder": "List medications...",
+            "urgency": "Urgency",
+            "urgency_placeholder": "Select urgency",
+            "contactMethod": "Contact Method",
+            "contactMethod_placeholder": "Preferred contact?",
+            "additionalInfo": "Additional Info",
+            "additionalInfo_placeholder": "Any other details..."
+        },
+        "messages": {
+            "loginRequired": "Please login first",
+            "submitSuccess": "Request submitted successfully",
+            "submitError": "Error submitting request"
+        },
+        "records": {
+            "title": "My Requests and Notes",
+            "petDetails": "Pet Details",
+            "noRequests": "You haven't added any requests or notes yet",
+            "noRequestsDesc": "When you fill out and confirm the form below, it will appear here for easy future use",
+            "bookingAt": "You are requesting a consultation with:",
+            "willBeSentToVet": "This form will be sent directly to the doctor to schedule an appointment.",
+            "editDetails": "Edit and View Details",
+            "delete": "Delete",
+            "symptomsLabel": "Symptoms:",
+            "medicationsLabel": "Medications:",
+            "sendToVet": "Send to Doctor",
+            "chooseVetToBook": "Choose a Doctor to Book",
+            "healthInfo": "Health Information",
+            "phoneCommunication": "Phone Number (for contact)",
+            "enterPhone": "Enter phone number",
+            "alternatePhone": "Alternate Phone (Optional)",
+            "alternatePhonePlaceholder": "Alternate number if any",
+            "updateConfirmForm": "Update and Confirm Form",
+            "cancelEdit": "Cancel Edit",
+            "deletedSuccess": "Record deleted successfully",
+            "deletedError": "Failed to delete the record",
+            "sentSuccess": "Consultation request sent to doctor",
+            "sentSuccessSuffix": "successfully",
+            "sentError": "Failed to send request to doctor",
+            "whatsapp": "WhatsApp"
+        },
+        "info": {
+            "title": "Important Information",
+            "item1": "Request will be reviewed by medical team",
+            "item2": "Usually replies within 24h",
+            "item3": "In emergencies, contact 24/7 hotline",
+            "item4": "Ensure contact details are correct"
+        },
+        "ai": {
+            "toggle": {
+                "show": "AI Analysis",
+                "hide": "Hide Analysis"
+            }
+        },
+        "healthInfo": "Health Information"
+    },
+    "services": {
+        "generalConsultation": "General Consultation",
+        "diagnosticTests": "Lab Tests",
+        "emergency": "Emergency",
+        "vaccination": "Vaccination",
+        "surgery": "Surgery",
+        "dental": "Dental"
+    },
+    "petTypes": {
+        "dog": "Dog",
+        "cat": "Cat",
+        "bird": "Bird",
+        "rabbit": "Rabbit",
+        "hamster": "Hamster",
+        "fish": "Fish",
+        "turtle": "Turtle",
+        "horse": "Horse",
+        "livestock": "Livestock",
+        "other": "Other"
+    },
+    "gender": {
+        "male": "Male",
+        "female": "Female"
+    },
+    "severity": {
+        "mild": "Mild",
+        "moderate": "Moderate",
+        "severe": "Severe",
+        "emergency": "Emergency"
+    },
+    "urgency": {
+        "notUrgent": "Not Urgent",
+        "urgent": "Urgent",
+        "veryUrgent": "Very Urgent"
+    },
+    "contact": {
+        "phone": "Phone",
+        "email": "Email",
+        "textChat": "Text Chat",
+        "video": "Video Call"
+    },
+    "labels": {
+        "personality": "Personality",
+        "care": "Care Tips",
+        "idealOwner": "Ideal Owner",
+        "funnyTip": "Fun Fact"
+    },
+    "supplies": {
+        "essentials": "Essentials"
+    },
+    "actions": {
+        "send": "Send",
+        "sending": "Sending...",
+        "close": "Close",
+        "search": "Search",
+        "update": "Update",
+        "creatingAccount": "Creating account..."
+    },
+    "vet": {
+        "registration": {
+            "specialization": "Specializations",
+            "experience": "Experience"
+        },
+        "governorates": "Governorates",
+        "consultationFee": "Consultation Fee:",
+        "notSpecified": "Not specified",
+        "rateDoctor": "Rate Doctor",
+        "requestConsultation": "Request Consultation / Fill Form",
+        "chooseNumberToCall": "Choose a number to call:",
+        "clinicNumber": "Clinic Number",
+        "rateVetTitle": "Rate Veterinarian",
+        "ratingSuccess": "Rating added successfully! Thank you.",
+        "ratingError": "An error occurred while adding the rating. Please try again."
+    },
+    "products": {
+        "title": "Pet Store",
+        "subtitle": "Everything your pet needs from global brands",
+        "searchPlaceholder": "Search for a product...",
+        "categories": {
+            "all": "All Categories",
+            "food": "Food",
+            "medicine": "Medicine",
+            "hygiene": "Hygiene",
+            "accessories": "Accessories"
+        },
+        "labels": {
+            "supportedCurrencies": "Approximate prices in other currencies:",
+            "includesAccessories": "Includes accessories:",
+            "essentials": "Basic essentials:"
+        },
+        "sample": {
+            "food": "Premium Cat Food",
+            "foodDesc": "Balanced nutritional meal for your pet"
+        },
+        "mockData": [
+            {
+                "id": "1",
+                "name": "Royal Canin Dry Food",
+                "category": "Food",
+                "description": "Balanced diet for adult cats.",
+                "priceEGP": 450,
+                "accessories": [],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&height=600&fit=crop",
+                "storeName": "Friends Store"
+            },
+            {
+                "id": "2",
+                "name": "Anti-Fungal Shampoo",
+                "category": "Hygiene",
+                "description": "Medical shampoo for skin care.",
+                "priceEGP": 120,
+                "accessories": [],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=800&height=600&fit=crop",
+                "storeName": "Vet Pharmacy"
+            },
+            {
+                "id": "3",
+                "name": "Smart Dog Collar",
+                "category": "Accessories",
+                "description": "GPS enabled collar to track your pet.",
+                "priceEGP": 800,
+                "accessories": ["Extra Battery", "USB Charger"],
+                "essentials": [],
+                "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&height=600&fit=crop",
+                "storeName": "Pet Tech"
+            }
+        ]
+    },
+    "cart": {
+        "addToCart": "Add to Cart",
+        "added": "Added to Cart"
+    },
+    "pages": {
+        "partnerStores": {
+            "title": "Partner Stores",
+            "desc": "Browse our trusted partner stores for the best products"
+        },
+        "delivery": {
+            "tracking": {
+                "title": "Track Order",
+                "desc": "Track your order and driver live",
+                "orderIdPlaceholder": "Enter Order ID"
+            }
+        }
+    },
+    "status": {
+        "loading": "Loading...",
+        "noStores": "No stores available currently",
+        "label": "Order Status",
+        "unavailable": "Unavailable",
+        "waitingDriver": "Waiting for Driver..."
+    },
+    "rating": {
+        "title": "Rate Your Experience",
+        "commentPlaceholder": "Share your thoughts...",
+        "submit": "Submit Rating"
+    },
+    "fields": {
+        "city": "City / Governorate",
+        "fullName": "Full Name",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "role": "Role",
+        "roleUser": "User",
+        "roleVet": "Veterinarian",
+        "rolePetstore": "Pet Store",
+        "syndicateCard": "Syndicate ID Card",
+        "idFront": "National ID (Front)",
+        "idBack": "National ID (Back)",
+        "commercialReg": "Commercial Registration"
+    },
+    "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid Email",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordMismatch": "Passwords do not match",
+        "fullNameRequired": "Full Name is required"
+    },
+    "dashboard": {
+        "welcomeWithName": "Welcome {{name}}",
+        "hello": "Hello",
+        "accountOverview": "Account Overview",
+        "messages": "Messages",
+        "recentActivity": "Recent Activity",
+        "viewAll": "View All",
+        "stats": {
+            "unreadMessages": "Unread Messages",
+            "totalPets": "Total Pets",
+            "registeredPets": "Registered Pets",
+            "upcomingAppointments": "Upcoming Appointments",
+            "within30Days": "Within 30 Days",
+            "totalAppointments": "Total Appointments",
+            "completed": "Completed"
+        }
+    },
+    "petstore": {
+        "title": "Store Management",
+        "edit": "Edit Store Details",
+        "update": {
+            "success": "Store details updated successfully",
+            "failed": "Failed to update store details"
+        },
+        "product": {
+            "added": "Product added successfully",
+            "addFailed": "Failed to add product",
+            "confirmDelete": "Are you sure you want to delete this product?",
+            "deleted": "Product deleted successfully"
+        },
+        "errors": {
+            "uploadImage": "Failed to upload image"
+        }
+    },
+    "doctor": {
+        "title": "Doctor Dashboard",
+        "settings": {
+            "title": "Clinic Settings"
+        },
+        "stats": {
+            "totalPatients": "Total Patients",
+            "products": "Products",
+            "consultations": "Consultations",
+            "rating": "Overall Rating",
+            "revenue": "Revenue",
+            "upcoming": "Upcoming",
+            "newPatients": "New Patients",
+            "views": "Total Views",
+            "fromLastMonth": "from last month",
+            "likes": "Total Likes",
+            "videos": "Total Videos",
+            "publishedVideos": "Published Videos",
+            "appointmentsThisMonth": "Appointments This Month",
+            "scheduledAppointments": "Scheduled Appointments",
+            "thisMonth": "This Month"
+        },
+        "bookings": {
+            "title": "Bookings Record",
+            "description": "Manage your bookings and appointments",
+            "goToBookings": "Go to Bookings"
+        },
+        "modals": {
+            "uploadVideo": {
+                "title": "Upload Video"
+            }
+        }
+    },
+    "messages": {
+        "passwordMatch": "Matching",
+        "uploadSyndicateMissing": "Please upload Syndicate ID and National ID",
+        "uploadCommercialMissing": "Please upload Commercial Registration"
+    },
+    "favorites": {
+        "title": "My Favorites",
+        "subtitle": "Products you liked",
+        "empty": "Favorites list is empty",
+        "emptyDesc": "Browse our products and add what you like to your favorites to return to it later.",
+        "added": "Added to favorites",
+        "removed": "Removed from favorites"
+    }
+}

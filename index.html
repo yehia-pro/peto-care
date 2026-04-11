@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="بيتو كير" />
+    <meta name="google" content="notranslate" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Enhanced SEO Meta Tags -->
+    <title>بيتو كير - رعاية الحيوانات الأليفة والخدمات البيطرية</title>
+    <meta name="description" content="شبكة بيتو كير توفر لك خدمات رعاية حيوانك الأليف مع أفضل الأطباء البيطريين. احجز موعدك الآن واستمتع بخدماتنا المميزة." />
+    <meta name="keywords" content="رعاية حيوانات أليفة, أطباء بيطريين, عيادة بيطرية, استشارات بيطرية, حيوانات منزلية, رعاية طبية للحيوانات, عيادة بيطرية منزلية, طوارئ بيطرية, استشارة بيطرية اونلاين, دكتور بيطري" />
+    <meta name="author" content="بيتو كير" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="بيتو كير - رعاية الحيوانات الأليفة والخدمات البيطرية" />
+    <meta property="og:description" content="شبكة بيتو كير تربطك بأطباء بيطريين معتمدين حول العالم. حجز مواعيد، طوارئ، واستشارات أونلاين." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yourdomain.com" />
+    <meta property="og:image" content="https://yourdomain.com/og-image.jpg" />
+    <meta property="og:site_name" content="بيتو كير" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="بيتو كير - رعاية الحيوانات الأليفة" />
+    <meta name="twitter:description" content="تواصل مع أطباء بيطريين معتمدين لرعاية حيوانك الأليف." />
+    <meta name="twitter:image" content="https://yourdomain.com/twitter-image.jpg" />
+    
+    <!-- Additional SEO Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="canonical" href="https://yourdomain.com" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" />
+    
+    <!-- DNS Prefetch for external domains -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Structured Data for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VeterinaryCare",
+      "name": "بيتو كير",
+      "description": "شبكة بيطرية محترفة تربط أصحاب الحيوانات بأطباء معتمدين حول العالم",
+      "url": "https://yourdomain.com",
+      "telephone": "+1-555-VET-CARE",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "City",
+        "addressRegion": "State",
+        "addressCountry": "US"
+      },
+      "openingHours": "Mo-Su 00:00-23:59",
+      "serviceType": "Veterinary services"
+    }
+    </script>
+    
+    <!-- Critical CSS inline -->
+    <style>
+      /* Critical above-the-fold styles */
+      body {
+        margin: 0;
+        padding: 0;
+        text-align: right;
+        direction: rtl;
+        font-family: 'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif';
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f8fafc;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Beautiful Loading Screen */
+      .app-loader-container {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 50%, #faf5ff 100%);
+        z-index: 9999;
+      }
+      
+      .loader-logo-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        margin-bottom: 2rem;
+        animation: pulseLogo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      .loader-text {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(to right, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+      }
+      
+      .loader-subtext {
+        color: #64748b;
+        font-size: 1.2rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .loader-dots::after {
+        content: '...';
+        animation: ellipsis 1.5s infinite;
+        width: 1.5em;
+        text-align: left;
+        display: inline-block;
+      }
+
+      @keyframes pulseLogo {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.15), 0 10px 10px -5px rgba(37, 99, 235, 0.05);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 25px 30px -5px rgba(124, 58, 237, 0.2), 0 15px 15px -5px rgba(124, 58, 237, 0.1);
+        }
+      }
+
+      @keyframes ellipsis {
+        0% { content: ''; }
+        25% { content: '.'; }
+        50% { content: '..'; }
+        75% { content: '...'; }
+      }
+    </style>
+    
+    <!-- Load non-critical CSS asynchronously -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading state -->
+      <div class="app-loader-container">
+        <div class="loader-logo-wrapper">
+          <img src="/icon-192.png" alt="Peto Care" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" />
+        </div>
+        <div class="loader-text">Welcome to peto care</div>
+        <div class="loader-subtext">
+          <span style="font-family: 'Caveat', cursive; font-size: 1.4rem; font-weight: bold; background: linear-gradient(to right, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; transform: rotate(-2deg) skewX(-5deg); letter-spacing: 1px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+            Developed by yehia ayman
+          </span>
+          <span class="loader-dots" style="color: #64748b; font-family: 'Inter', sans-serif;"></span>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Google Analytics (when you have tracking ID) -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"></script> -->
+    <!-- <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_TRACKING_ID');
+    </script> -->
+  </body>
+</html>
