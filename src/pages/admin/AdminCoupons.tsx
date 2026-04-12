@@ -158,7 +158,7 @@ export default function AdminCoupons() {
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
                           <div 
                             className="bg-purple-600 h-1.5 rounded-full" 
-                            style={{ width: \`\${Math.min(100, (coupon.usedCount / coupon.maxUses) * 100)}%\` }}
+                            style={{ width: `${Math.min(100, (coupon.usedCount / coupon.maxUses) * 100)}%` }}
                           ></div>
                         </div>
                       </td>

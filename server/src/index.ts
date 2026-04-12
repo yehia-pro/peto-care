@@ -74,6 +74,7 @@ const importRoutes = async () => {
 };
 
 const app = express();
+app.set('trust proxy', 1); // Trust the HF reverse proxy for rate limiting
 const server = http.createServer(app);
 const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173', 'http://localhost:4173', 'http://localhost:8080']
 const io = new IOServer(server, {
