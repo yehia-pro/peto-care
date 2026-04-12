@@ -300,12 +300,12 @@ const Products = () => {
                           {formatCurrency(p.salePrice, 'EGP')}
                         </span>
                         <span className="text-sm text-gray-400 line-through">
-                          {formatCurrency(p.priceEGP || p.price, 'EGP')}
+                          {formatCurrency(p.priceEGP || p.price || 0, 'EGP')}
                         </span>
                       </>
                     ) : (
                       <span className="text-2xl font-bold text-[var(--color-vet-secondary)]">
-                        {formatCurrency(p.priceEGP || p.price, 'EGP')}
+                        {formatCurrency(p.priceEGP || p.price || 0, 'EGP')}
                       </span>
                     )}
                   </div>
