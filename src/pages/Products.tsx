@@ -21,6 +21,9 @@ type Product = {
   storeName?: string;
   inStock?: boolean;
   stock?: number;  // كمية المخزن
+  salePrice?: number;
+  saleExpiresAt?: string | null;
+  price?: number;
 };
 
 const Products = () => {

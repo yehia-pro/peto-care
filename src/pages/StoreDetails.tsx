@@ -17,6 +17,8 @@ type Product = {
   imageUrl?: string;
   inStock?: boolean;
   stock?: number;
+  salePrice?: number;
+  saleExpiresAt?: string | null;
 };
 
 type PetStore = {
