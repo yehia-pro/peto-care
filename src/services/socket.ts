@@ -46,9 +46,10 @@ class SocketService {
             auth: { token },
             transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: this.maxReconnectAttempts
+            reconnectionDelay: 2000,
+            reconnectionDelayMax: 15000,
+            reconnectionAttempts: 10,
+            timeout: 20000,  // wait longer for Hugging Face cold-start
         })
 
         this.setupEventListeners()

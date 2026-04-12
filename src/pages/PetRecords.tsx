@@ -51,42 +51,26 @@ const PetRecords = () => {
     document.title = t('petRecords.title') + ' - ' + (t('brand.name') || 'Pet Care');
   }, [t]);
 
-  const checkBackendHealth = async () => {
-    try {
-      await api.get('/health');
-      return true;
-    } catch (error) {
-      console.error('Backend health check failed:', error);
-      return false;
-    }
-  };
-
   const fetchRecords = async (retries = 3) => {
     try {
       setError(null);
       setLoading(true);
 
-      const isHealthy = await checkBackendHealth();
-      if (!isHealthy) {
-        setError(t('petRecords.errors.backendOffline'));
-        setLoading(false);
-        return;
-      }
-
+      // Try fetching records directly — health check was causing false negatives on cold-start
       const response = await recordsAPI.getRecords();
       const recordsData = response.data?.records;
       setRecords(Array.isArray(recordsData) ? recordsData : []);
     } catch (error: any) {
       console.error('Error fetching pet records:', error);
 
-      if (retries > 0 && (error?.message === 'Network Error' || error?.code === 'ECONNREFUSED')) {
-        setTimeout(() => fetchRecords(retries - 1), 1000);
+      // Retry on connection issues (Hugging Face cold start can take up to 60s)
+      if (retries > 0 && (error?.message === 'Network Error' || error?.code === 'ECONNREFUSED' || error?.code === 'ERR_NETWORK')) {
+        console.log(`Retrying... attempts left: ${retries}`);
+        setTimeout(() => fetchRecords(retries - 1), 3000);
         return;
       }
 
-      const errorMessage = error?.message === 'Network Error'
-        ? t('petRecords.errors.network')
-        : (error?.response?.data?.error || t('petRecords.errors.fetchFailed'));
+      const errorMessage = error?.response?.data?.error || t('petRecords.errors.fetchFailed');
       setError(errorMessage);
       setRecords([]);
     } finally {
