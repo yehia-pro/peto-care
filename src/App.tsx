@@ -81,9 +81,11 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
 function App() {
   const { currentLanguage } = useLanguageStore()
   const { isAuthenticated } = useAuthStore()
+  const [showSplash, setShowSplash] = useState(true)
 
   return (
     <BrowserRouter>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <ErrorBoundary>
         <LanguageProvider>
           <SocketProvider>
