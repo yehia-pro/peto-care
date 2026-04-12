@@ -76,13 +76,31 @@ const importRoutes = async () => {
 const app = express();
 app.set('trust proxy', 1); // Trust the HF reverse proxy for rate limiting
 const server = http.createServer(app);
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173', 'http://localhost:4173', 'http://localhost:8080']
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['*']
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow all origins — auth is JWT-based (stateless), CORS doesn't add security here
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
 const io = new IOServer(server, {
-  cors: { origin: allowedOrigins }
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: false
+  },
+  // Tuned for Hugging Face reverse-proxy environment
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ['polling', 'websocket'],
+  allowEIO3: true,
 });
 app.set('io', io)
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors(corsOptions));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginOpenerPolicy: false,

@@ -40,3 +40,9 @@ vite_debug.txt
 organized-veterinary-website/
 veterinary_network_full/
 web-Y-A/
+
+# Deployment scripts (contains HF tokens)
+*.ps1
+*.bat
+hf-deploy-dir/
+git/
