@@ -13,7 +13,7 @@ export const connectMongo = async () => {
     return mongoose;
   }
 
-  const remoteUri = process.env.MONGODB_URI || "mongodb+srv://euphoriapetocare_db_user:Qn96ZeC8Kk%407wfF@cluster0.adpudw0.mongodb.net/peto-care?appName=Cluster0";
+  const remoteUri = process.env.MONGODB_URI;
   const localUri = process.env.LOCAL_MONGODB_URI || 'mongodb://127.0.0.1:27017/vetapp';
 
   // 1. Try Remote Connection if URI exists
