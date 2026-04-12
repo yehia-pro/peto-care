@@ -16,11 +16,11 @@ export const connectMongo = async () => {
   const remoteUri = process.env.MONGODB_URI;
   const localUri = process.env.LOCAL_MONGODB_URI || 'mongodb://127.0.0.1:27017/vetapp';
 
-  // 1. Try Remote Connection if URI exists
   if (remoteUri) {
     try {
+      console.log(`[DEBUG] remoteUri length is ${remoteUri?.length}, ends with Cluster0? ${remoteUri?.endsWith('Cluster0')}`);
       console.log('Attempting to connect to Remote MongoDB...');
-      const conn = await mongoose.connect(remoteUri, {
+      const conn = await mongoose.connect(remoteUri.trim(), {
         serverSelectionTimeoutMS: 5000,
       });
       isConnected = true;
