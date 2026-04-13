@@ -112,6 +112,7 @@ router.get('/stats', requireAuth(['petstore']), async (req: Request, res: Respon
 const updateSchema = z.object({
   body: z.object({
     storeName: z.string().optional(),
+    storeType: z.string().optional(),
     description: z.string().optional(),
     brands: z.union([z.string(), z.array(z.string())]).optional(),
     city: z.string().optional(),
@@ -130,7 +131,10 @@ router.put('/profile', requireAuth(['petstore']), async (req: Request, res: Resp
   try {
     const userId = (req as any).user!.id
     const body = updateSchema.parse({ body: req.body }).body as any
-    if (Array.isArray(body.brands)) body.brands = body.brands.join(',')
+    // Normalize brands: if string (comma-separated), convert to array
+    if (typeof body.brands === 'string') {
+      body.brands = body.brands.split(',').map((b: string) => b.trim()).filter(Boolean)
+    }
 
     try {
       const updated = await MPetStoreModel.findOneAndUpdate({ userId }, { $set: body }, { new: true }).lean()

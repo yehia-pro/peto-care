@@ -3,8 +3,15 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface IPetStore extends Document {
   userId: string
   storeName: string
+  storeType?: string
   description?: string
-  brands?: string
+  phone?: string
+  website?: string
+  whatsapp?: string
+  openingTime?: string
+  closingTime?: string
+  services?: string[]
+  brands?: string[]
   city?: string
   address?: string
   commercialRegImageUrl: string
@@ -29,8 +36,15 @@ const petStoreSchema = new Schema<IPetStore>(
   {
     userId: { type: String, required: true, index: true },
     storeName: { type: String, required: true },
+    storeType: String,
     description: String,
-    brands: String,
+    phone: String,
+    website: String,
+    whatsapp: String,
+    openingTime: String,
+    closingTime: String,
+    services: [String],
+    brands: [String],
     city: String,
     address: String,
     commercialRegImageUrl: { type: String, required: true },

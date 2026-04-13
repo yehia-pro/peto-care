@@ -90,17 +90,39 @@ router.post('/register', upload.fields([
       if (userRole === 'petstore') {
         try {
           const storeName = req.body.storeName || req.body.fullName
+          const servicesRaw = req.body.services
+          const services = Array.isArray(servicesRaw)
+            ? servicesRaw
+            : typeof servicesRaw === 'string' && servicesRaw
+              ? servicesRaw.split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+              : []
+          const brandsRaw = req.body.brands
+          const brands = Array.isArray(brandsRaw)
+            ? brandsRaw
+            : typeof brandsRaw === 'string' && brandsRaw
+              ? brandsRaw.split(',')
+                .map((b: string) => b.trim())
+                .filter(Boolean)
+              : []
           await MPetStoreModel.create({
             userId: created._id.toString(),
             storeName,
+            storeType: req.body.storeType,
             description: req.body.description,
-            brands: req.body.brands,
+            phone: req.body.phone,
+            whatsapp: req.body.whatsapp,
+            openingTime: req.body.openingTime,
+            closingTime: req.body.closingTime,
+            services,
+            brands,
             city: req.body.city,
             address: req.body.address,
             commercialRegImageUrl: commercialRegImageUrl || '',
             rating: 0
           })
-        } catch (e) { }
+        } catch (e) { console.error('Failed to create PetStore record:', e) }
       }
       try {
         const subject = userRole === 'vet' ? 'تسجيل طبيب بيطري جديد' : 'تسجيل متجر جديد'
@@ -378,15 +400,22 @@ router.post('/seed-demo-store', async (_req, res) => {
       await MPetStoreModel.create({
         userId: userDoc._id.toString(),
         storeName: 'متجر تجريبي',
-        description: 'متجر تجريبي للتجربة.',
-        brands: '',
+        storeType: 'comprehensive',
+        description: 'متجر تجريبي للتجربة. يعرض مجموعة متنوعة من مستلزمات الحيوانات الأليفة.',
+        phone: '01000000000',
+        whatsapp: '+201000000000',
         city: 'القاهرة',
         address: 'شارع التجربة 1',
+        openingTime: '09:00',
+        closingTime: '21:00',
+        services: ['مستلزمات الحيوانات', 'طعام الحيوانات'],
+        brands: ['Royal Canin', 'Purina'],
         commercialRegImageUrl: placeholder,
-        rating: 0,
+        rating: 4.5,
+        reviewCount: 12,
         products: []
       })
-    } catch (e) { }
+    } catch (e) { console.error('seed-demo-store create error:', e) }
   } else {
     userDoc.isApproved = true
     userDoc.passwordHash = await bcrypt.hash('Demo@1234', 10)
@@ -397,16 +426,35 @@ router.post('/seed-demo-store', async (_req, res) => {
         await MPetStoreModel.create({
           userId: userDoc._id.toString(),
           storeName: 'متجر تجريبي',
-          description: 'متجر تجريبي للتجربة.',
-          brands: '',
+          storeType: 'comprehensive',
+          description: 'متجر تجريبي للتجربة. يعرض مجموعة متنوعة من مستلزمات الحيوانات الأليفة.',
+          phone: '01000000000',
+          whatsapp: '+201000000000',
           city: 'القاهرة',
           address: 'شارع التجربة 1',
+          openingTime: '09:00',
+          closingTime: '21:00',
+          services: ['مستلزمات الحيوانات', 'طعام الحيوانات'],
+          brands: ['Royal Canin', 'Purina'],
           commercialRegImageUrl: placeholder,
-          rating: 0,
+          rating: 4.5,
+          reviewCount: 12,
           products: []
         })
+      } else {
+        // Update existing with new fields if missing
+        await MPetStoreModel.findOneAndUpdate(
+          { userId: userDoc._id.toString() },
+          { $set: {
+            storeType: existing.storeType || 'comprehensive',
+            phone: existing.phone || '01000000000',
+            openingTime: existing.openingTime || '09:00',
+            closingTime: existing.closingTime || '21:00',
+          }},
+          { new: true }
+        )
       }
-    } catch (e) { }
+    } catch (e) { console.error('seed-demo-store update error:', e) }
   }
   const token = jwt.sign({ id: userDoc._id.toString(), role: userDoc.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
   res.json({ token, user: { id: userDoc._id.toString(), email: userDoc.email, fullName: userDoc.fullName, role: userDoc.role } })

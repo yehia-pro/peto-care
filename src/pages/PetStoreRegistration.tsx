@@ -196,14 +196,23 @@ const PetStoreRegistration: React.FC = () => {
 
     try {
       const form = new FormData()
-      Object.entries(formData).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          form.append(key, value.join(','))
-        } else if (value) {
-          form.append(key, value)
-        }
+      // Append all scalar fields
+      const scalarFields = ['storeName','email','password','businessLicense','storeType',
+        'description','address','city','country','phone','whatsapp','openingTime','closingTime']
+      scalarFields.forEach(key => {
+        const val = (formData as any)[key]
+        if (val !== undefined && val !== null && val !== '') form.append(key, val)
       })
 
+      // Append arrays as comma-separated (backend will split)
+      if (formData.services && formData.services.length > 0) {
+        form.append('services', formData.services.join(','))
+      }
+      if (formData.brands && formData.brands.length > 0) {
+        form.append('brands', formData.brands.join(','))
+      }
+
+      // map storeName → fullName for User model
       form.append('fullName', formData.storeName)
       form.append('role', 'petstore')
 

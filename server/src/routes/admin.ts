@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import MUserModel from '../models/User'
+import MPetStoreModel from '../models/PetStore'
 import { sendEmail } from '../services/email'
 
 const router = Router()
@@ -50,6 +51,37 @@ router.put('/approve/:id', requireAuth(['admin']), async (req, res) => {
     user.isApproved = true;
     await user.save();
 
+    // If petstore, ensure a PetStore document exists (safety net in case it failed at registration)
+    if (user.role === 'petstore') {
+      try {
+        const existing = await MPetStoreModel.findOne({ userId: user._id.toString() })
+        if (!existing) {
+          let contact: any = {}
+          try { contact = typeof user.contact === 'string' ? JSON.parse(user.contact) : (user.contact || {}) } catch (_) {}
+          const placeholder = 'https://placehold.co/600x400'
+          await MPetStoreModel.create({
+            userId: user._id.toString(),
+            storeName: (user as any).storeName || user.fullName,
+            storeType: contact.storeType || 'comprehensive',
+            description: contact.description || '',
+            phone: (user as any).phone || contact.phone || '',
+            whatsapp: contact.whatsapp || '',
+            openingTime: contact.openingTime || '09:00',
+            closingTime: contact.closingTime || '21:00',
+            services: Array.isArray(contact.services) ? contact.services : [],
+            brands: Array.isArray(contact.brands) ? contact.brands : [],
+            city: contact.city || '',
+            address: contact.address || '',
+            commercialRegImageUrl: (user as any).commercialRegImageUrl || placeholder,
+            rating: 0
+          })
+          console.log(`[Approve] Auto-created PetStore record for user ${user._id}`)
+        }
+      } catch (storeErr) {
+        console.error('[Approve] Failed to ensure PetStore record:', storeErr)
+      }
+    }
+
     // Send approval email to the user
     try {
       const roleLabel = user.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة';
@@ -57,7 +89,7 @@ router.put('/approve/:id', requireAuth(['admin']), async (req, res) => {
       const html = `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9fafb; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
           <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 32px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Yehia Pet Care</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Peto Care</h1>
             <p style="color: #bfdbfe; margin: 8px 0 0 0; font-size: 14px;">منصة الرعاية البيطرية المتكاملة</p>
           </div>
 
@@ -84,13 +116,17 @@ router.put('/approve/:id', requireAuth(['admin']), async (req, res) => {
               </a>
             </div>
 
-            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+            <p style="color: #4b5563; font-size: 14px; text-align: center; margin: 32px 0 0 0; line-height: 1.6;">
+              مع تحيات،<br>
+              <strong>فريق دعم Peto Care</strong>
+            </p>
+            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 12px 0 0 0;">
               إذا كان لديك أي استفسار، تواصل معنا على هذا البريد الإلكتروني.
             </p>
           </div>
 
           <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Yehia Pet Care. جميع الحقوق محفوظة.</p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Peto Care. جميع الحقوق محفوظة.</p>
           </div>
         </div>`;
       await sendEmail(user.email, subject, html);
@@ -114,11 +150,11 @@ router.delete('/reject/:id', requireAuth(['admin']), async (req, res) => {
     // Send rejection email BEFORE deleting the record
     try {
       const roleLabel = user.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة';
-      const subject = 'بخصوص طلب تسجيلك في منصة Yehia Pet Care';
+      const subject = 'بخصوص طلب تسجيلك في منصة Peto Care';
       const html = `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9fafb; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
           <div style="background: linear-gradient(135deg, #374151, #1f2937); padding: 32px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Yehia Pet Care</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Peto Care</h1>
             <p style="color: #9ca3af; margin: 8px 0 0 0; font-size: 14px;">منصة الرعاية البيطرية المتكاملة</p>
           </div>
 
@@ -145,13 +181,17 @@ router.delete('/reject/:id', requireAuth(['admin']), async (req, res) => {
               يمكنك إعادة التقديم بعد التأكد من اكتمال بياناتك ووضوح المستندات المطلوبة.
             </p>
 
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
+              مع تحيات،<br>
+              <strong>فريق دعم Peto Care</strong>
+            </p>
             <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 16px 0 0 0;">
-              إذا كنت تعتقد أن هناك خطأ، يرجى التواصل معنا.
+              إذا كنت تعتقد أن هناك خطأ، يرجى التواصل معنا عبر الرد على هذا البريد.
             </p>
           </div>
 
           <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Yehia Pet Care. جميع الحقوق محفوظة.</p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Peto Care. جميع الحقوق محفوظة.</p>
           </div>
         </div>`;
       await sendEmail(user.email, subject, html);
