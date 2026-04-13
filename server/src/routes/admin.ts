@@ -223,36 +223,38 @@ router.get('/stores', requireAuth(['admin']), async (_req, res) => {
       .lean() as any[]
     
     // Fallback to memory json db (trial users missing from mongo)
-    const memUsersList: any[] = JsonDb.read('users.json', [])
-    const memPetstoreUsers = memUsersList.filter(u => u.role === 'petstore')
+    const memUsersList: any = JsonDb.read('users.json', [])
+    const memPetstoreUsers = Array.isArray(memUsersList) ? memUsersList.filter(u => u.role === 'petstore') : []
     
     // Combine and deduplicate by email or id
     const seenIds = new Set<string>()
     const petstoreUsers = [...mongoPetstoreUsers, ...memPetstoreUsers].filter(u => {
       const idStr = (u._id || u.id)?.toString()
-      if (seenIds.has(idStr)) return false
-      seenIds.add(idStr)
+      if (idStr && seenIds.has(idStr)) return false
+      if (idStr) seenIds.add(idStr)
       return true
     })
 
     // Get all PetStore documents
     const mongoPetStoreDocs = await MPetStoreModel.find({}).lean() as any[]
-    const memStoresList: any[] = JsonDb.read('stores.json', [])
-    const petStoreDocs = [...mongoPetStoreDocs, ...memStoresList]
+    const memStoresList: any = JsonDb.read('stores.json', [])
+    const petStoreDocs = [...mongoPetStoreDocs, ...(Array.isArray(memStoresList) ? memStoresList : [])]
 
     // Map userId → PetStore doc
     const storeByUserId: Record<string, any> = {}
     for (const doc of petStoreDocs) {
-      storeByUserId[doc.userId] = doc
+      if (doc.userId) {
+        storeByUserId[doc.userId.toString()] = doc
+      }
     }
 
     // Merge: each user + their store status
     const result = petstoreUsers.map(user => {
-      const uId = (user._id || user.id).toString()
+      const uId = (user._id || user.id)?.toString() || 'unknown'
       return {
         userId: uId,
-        fullName: user.fullName,
-        email: user.email,
+        fullName: user.fullName || 'بدون اسم',
+        email: user.email || '',
         phone: user.phone || '',
         isApproved: user.isApproved,
         createdAt: user.createdAt,
