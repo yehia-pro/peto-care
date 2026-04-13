@@ -95,6 +95,16 @@ export default function VetRegistration() {
     return true
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement
+      // Prevent form submission on Enter unless it's a textarea or button
+      if (target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
+        e.preventDefault()
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -164,7 +174,7 @@ export default function VetRegistration() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-8">
               {/* Basic Info Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Full Name */}

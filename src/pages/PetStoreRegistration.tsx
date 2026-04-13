@@ -154,6 +154,16 @@ const PetStoreRegistration: React.FC = () => {
     setCurrentStep(currentStep - 1)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement
+      // Prevent form submission on Enter unless it's a textarea or button
+      if (target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
+        e.preventDefault()
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -260,7 +270,7 @@ const PetStoreRegistration: React.FC = () => {
 
         <div className="bg-white rounded-3xl shadow-xl shadow-amber-900/5 overflow-hidden border border-amber-100/50">
           <div className="p-8 sm:p-12">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-8">
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
