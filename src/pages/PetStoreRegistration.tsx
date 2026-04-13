@@ -601,16 +601,23 @@ const PetStoreRegistration: React.FC = () => {
                 </button>
 
                 <div className="flex gap-4">
-                  {currentStep < 3 ? (
+                  {currentStep < 3 && (
                     <button
+                      key="btn-next"
                       type="button"
-                      onClick={handleNext}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleNext()
+                      }}
                       className="px-8 py-3 bg-[var(--color-vet-accent)] text-white font-bold rounded-xl hover:bg-[var(--color-vet-accent)] shadow-lg shadow-amber-600/20 active:scale-95 transition-all"
                     >
                       {t('common.next')}
                     </button>
-                  ) : (
+                  )}
+                  
+                  {currentStep === 3 && (
                     <button
+                      key="btn-submit"
                       type="submit"
                       disabled={loading}
                       className="px-12 py-3 bg-[var(--color-vet-accent)] text-white font-bold rounded-xl hover:bg-[var(--color-vet-accent)] shadow-lg shadow-amber-600/30 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2"
