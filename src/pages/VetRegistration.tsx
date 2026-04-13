@@ -23,7 +23,7 @@ const vetSchema = z.object({
   email: z.string().email('بريد إلكتروني غير صالح'),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   phone: z.string().min(8, 'رقم الهاتف غير صالح'),
-  country: z.string().min(1, 'يرجى اختيار الدولة'),
+  country: z.string().min(1, 'يرجى اختيار المحافظة'),
   specialization: z.string().min(1, 'يرجى اختيار التخصص'),
   experienceYears: z.string().min(1, 'يرجى إدخال سنوات الخبرة'),
   qualification: z.string().min(10, 'يرجى إدخال تفاصيل المؤهل (10 أحرف على الأقل)')
@@ -52,9 +52,15 @@ export default function VetRegistration() {
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof VetFormData, string>>>({})
 
-  const countries = useMemo(() => [
-    'السعودية', 'الإمارات', 'قطر', 'الكويت', 'البحرين', 'عمان', 'مصر', 'الأردن', 'لبنان', 'سوريا', 'العراق', 'الجزائر', 'المغرب', 'تونس', 'ليبيا', 'السودان', 'اليمن'
-  ], [])
+  const governorates = useMemo(() => [
+    t('governorates.cairo'), t('governorates.giza'), t('governorates.alexandria'), t('governorates.qalyubia'),
+    t('governorates.dakahlia'), t('governorates.sharqia'), t('governorates.gharbia'), t('governorates.monufia'),
+    t('governorates.beheira'), t('governorates.kafr_el_sheikh'), t('governorates.damietta'), t('governorates.port_said'),
+    t('governorates.ismailia'), t('governorates.suez'), t('governorates.matrouh'), t('governorates.fayoum'),
+    t('governorates.beni_suef'), t('governorates.minya'), t('governorates.assiut'), t('governorates.sohag'),
+    t('governorates.qena'), t('governorates.luxor'), t('governorates.aswan'), t('governorates.new_valley'),
+    t('governorates.red_sea'), t('governorates.north_sinai'), t('governorates.south_sinai')
+  ], [t])
 
   const specializations = useMemo(() => {
     const list = t('customerServices.specializations.list', { returnObjects: true }) as Record<string, string>
@@ -195,11 +201,11 @@ export default function VetRegistration() {
                   {errors.email && <p className="text-xs text-red-500 mt-1 text-right">{errors.email}</p>}
                 </div>
 
-                {/* Country */}
+                {/* Governorate */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <Globe size={18} className="text-[var(--color-vet-primary)]" />
-                    {t('auth.country')} *
+                    {t('common.governorate')} *
                   </label>
                   <select
                     name="country"
@@ -208,7 +214,7 @@ export default function VetRegistration() {
                     className={`w-full px-4 py-3 rounded-xl border ${errors.country ? 'border-red-500 bg-red-50' : 'border-gray-200'} focus:ring-2 focus:ring-[var(--color-vet-primary)] focus:border-transparent transition-all text-right appearance-none`}
                   >
                     <option value="">{t('common.all')}</option>
-                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    {governorates.map(gov => <option key={gov} value={gov}>{gov}</option>)}
                   </select>
                 </div>
 

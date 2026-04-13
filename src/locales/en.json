@@ -117,7 +117,7 @@
         "close": "Close",
         "next": "Next",
         "previous": "Previous",
-        "country": "Country",
+        "governorate": "Governorate",
         "phone": "Phone",
         "start": "Start Now"
     },
@@ -883,14 +883,34 @@
         "added": "Added to favorites",
         "removed": "Removed from favorites"
     },
-    "countries": {
-        "egypt": "Egypt",
-        "saudi": "Saudi Arabia",
-        "uae": "United Arab Emirates",
-        "kuwait": "Kuwait",
-        "qatar": "Qatar",
-        "bahrain": "Bahrain",
-        "oman": "Oman"
+    "governorates": {
+        "cairo": "Cairo",
+        "giza": "Giza",
+        "alexandria": "Alexandria",
+        "qalyubia": "Qalyubia",
+        "dakahlia": "Dakahlia",
+        "sharqia": "Sharqia",
+        "gharbia": "Gharbia",
+        "monufia": "Monufia",
+        "beheira": "Beheira",
+        "kafr_el_sheikh": "Kafr El Sheikh",
+        "damietta": "Damietta",
+        "port_said": "Port Said",
+        "ismailia": "Ismailia",
+        "suez": "Suez",
+        "matrouh": "Matrouh",
+        "fayoum": "Fayoum",
+        "beni_suef": "Beni Suef",
+        "minya": "Minya",
+        "assiut": "Assiut",
+        "sohag": "Sohag",
+        "qena": "Qena",
+        "luxor": "Luxor",
+        "aswan": "Aswan",
+        "new_valley": "New Valley",
+        "red_sea": "Red Sea",
+        "north_sinai": "North Sinai",
+        "south_sinai": "South Sinai"
     },
     "records": {
         "city": "City"

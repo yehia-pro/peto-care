@@ -44,7 +44,7 @@ const PetStoreRegistration: React.FC = () => {
     description: '',
     address: '',
     city: '',
-    country: t('countries.egypt'),
+    country: t('governorates.cairo'),
     phone: '',
     website: '',
     whatsapp: '',
@@ -81,14 +81,14 @@ const PetStoreRegistration: React.FC = () => {
     t('products.categories.essentials')
   ], [t])
 
-  const countries = useMemo(() => [
-    t('countries.egypt'),
-    t('countries.saudi'),
-    t('countries.uae'),
-    t('countries.kuwait'),
-    t('countries.qatar'),
-    t('countries.bahrain'),
-    t('countries.oman')
+  const governorates = useMemo(() => [
+    t('governorates.cairo'), t('governorates.giza'), t('governorates.alexandria'), t('governorates.qalyubia'),
+    t('governorates.dakahlia'), t('governorates.sharqia'), t('governorates.gharbia'), t('governorates.monufia'),
+    t('governorates.beheira'), t('governorates.kafr_el_sheikh'), t('governorates.damietta'), t('governorates.port_said'),
+    t('governorates.ismailia'), t('governorates.suez'), t('governorates.matrouh'), t('governorates.fayoum'),
+    t('governorates.beni_suef'), t('governorates.minya'), t('governorates.assiut'), t('governorates.sohag'),
+    t('governorates.qena'), t('governorates.luxor'), t('governorates.aswan'), t('governorates.new_valley'),
+    t('governorates.red_sea'), t('governorates.north_sinai'), t('governorates.south_sinai')
   ], [t])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -434,7 +434,7 @@ const PetStoreRegistration: React.FC = () => {
 
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">
-                        {t('common.country')} *
+                        {t('common.governorate')} *
                       </label>
                       <select
                         name="country"
@@ -443,8 +443,8 @@ const PetStoreRegistration: React.FC = () => {
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all appearance-none"
                         required
                       >
-                        {countries.map(country => (
-                          <option key={country} value={country}>{country}</option>
+                        {governorates.map(gov => (
+                          <option key={gov} value={gov}>{gov}</option>
                         ))}
                       </select>
                     </div>

@@ -117,7 +117,7 @@
         "close": "إغلاق",
         "next": "التالي",
         "previous": "السابق",
-        "country": "الدولة",
+        "governorate": "المحافظة",
         "phone": "رقم الهاتف",
         "start": "ابدأ الآن"
     },
@@ -941,14 +941,34 @@
         "added": "تمت الإضافة للمفضلة",
         "removed": "تم الإزالة من المفضلة"
     },
-    "countries": {
-        "egypt": "مصر",
-        "saudi": "المملكة العربية السعودية",
-        "uae": "الإمارات العربية المتحدة",
-        "kuwait": "الكويت",
-        "qatar": "قطر",
-        "bahrain": "البحرين",
-        "oman": "عُمان"
+    "governorates": {
+        "cairo": "القاهرة",
+        "giza": "الجيزة",
+        "alexandria": "الإسكندرية",
+        "qalyubia": "القليوبية",
+        "dakahlia": "الدقهلية",
+        "sharqia": "الشرقية",
+        "gharbia": "الغربية",
+        "monufia": "المنوفية",
+        "beheira": "البحيرة",
+        "kafr_el_sheikh": "كفر الشيخ",
+        "damietta": "دمياط",
+        "port_said": "بورسعيد",
+        "ismailia": "الإسماعيلية",
+        "suez": "السويس",
+        "matrouh": "مطروح",
+        "fayoum": "الفيوم",
+        "beni_suef": "بني سويف",
+        "minya": "المنيا",
+        "assiut": "أسيوط",
+        "sohag": "سوهاج",
+        "qena": "قنا",
+        "luxor": "الأقصر",
+        "aswan": "أسوان",
+        "new_valley": "الوادي الجديد",
+        "red_sea": "البحر الأحمر",
+        "north_sinai": "شمال سيناء",
+        "south_sinai": "جنوب سيناء"
     },
     "records": {
         "city": "المدينة"
