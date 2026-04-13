@@ -6,6 +6,7 @@ import { uploadAPI, ordersAPI } from '../services/api'
 import { Store, Package, TrendingUp, Phone, Globe, MapPin, Clock, MessageCircle, Edit, X, ToggleLeft, ToggleRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { SafeImage } from '../components/SafeImage'
+import { API_BASE_URL } from '@/services/api';
 
 interface PetStoreData {
   id: string
@@ -90,7 +91,7 @@ const PetStoreDashboard: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/petstores/products', {
+      const res = await fetch(API_BASE_URL + '/petstores/products', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
       if (res.ok) {
@@ -165,7 +166,7 @@ const PetStoreDashboard: React.FC = () => {
   const handleToggleStock = async (productId: string, currentInStock: boolean) => {
     setTogglingStock(productId)
     try {
-      const res = await fetch(`/api/petstores/products/${productId}/stock`, {
+      const res = await fetch(`${API_BASE_URL}/petstores/products/${productId}/stock`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ inStock: !currentInStock })
@@ -203,7 +204,7 @@ const PetStoreDashboard: React.FC = () => {
       return
     }
     try {
-      const res = await fetch(`/api/petstores/products/${idToSend}/stock-count`, {
+      const res = await fetch(`${API_BASE_URL}/petstores/products/${idToSend}/stock-count`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ stock: newStock })
@@ -292,7 +293,7 @@ const PetStoreDashboard: React.FC = () => {
   const handleDeleteProduct = async (id: string) => {
     if (!window.confirm(t('petstore.product.confirmDelete'))) return
     try {
-      const res = await fetch(`/api/petstores/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/petstores/products/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
@@ -306,7 +307,7 @@ const PetStoreDashboard: React.FC = () => {
   const handleClearAllProducts = async () => {
     if (!window.confirm('هل أنت متأكد أنك تريد حذف جميع المنتجات؟ هذا الإجراء لا يمكن التراجع عنه.')) return
     try {
-      const res = await fetch('/api/petstores/products', {
+      const res = await fetch(API_BASE_URL + '/petstores/products', {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
@@ -322,7 +323,7 @@ const PetStoreDashboard: React.FC = () => {
 
   const fetchPetStoreData = async () => {
     try {
-      const response = await fetch('/api/petstores/profile', {
+      const response = await fetch(API_BASE_URL + '/petstores/profile', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -374,7 +375,7 @@ const PetStoreDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/petstores/stats', {
+      const response = await fetch(API_BASE_URL + '/petstores/stats', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -432,7 +433,7 @@ const PetStoreDashboard: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/petstores/profile', {
+      const response = await fetch(API_BASE_URL + '/petstores/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

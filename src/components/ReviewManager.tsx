@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Star, Edit, Trash2, User, Calendar, Filter } from 'lucide-react'
 import { useLanguageStore } from '../stores/languageStore'
+import { API_BASE_URL } from '@/services/api';
 
 interface Review {
   id: string
@@ -87,7 +88,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ vetId, userId, mode }) =>
 
   const handleUpdate = async (reviewId: string) => {
     try {
-      const response = await fetch(`/api/reviews/${reviewId}`, {
+      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +111,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ vetId, userId, mode }) =>
     if (!confirm('Are you sure you want to delete this review?')) return
 
     try {
-      const response = await fetch(`/api/reviews/${reviewId}`, {
+      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

@@ -5,6 +5,7 @@ import { useCartStore } from '../stores/cartStore';
 import { SafeImage } from '../components/SafeImage';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/services/api';
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, getTotal, getDiscountedTotal, appliedCoupon, applyCoupon, removeCoupon } = useCartStore();
@@ -18,7 +19,7 @@ const Cart = () => {
     if (!discountCode.trim()) return;
     setLoadingDiscount(true);
     try {
-      const res = await fetch('/api/coupons/validate', {
+      const res = await fetch(API_BASE_URL + '/coupons/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

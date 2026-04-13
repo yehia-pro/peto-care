@@ -13,7 +13,7 @@ export const connectMongo = async () => {
     return mongoose;
   }
 
-  const remoteUri = process.env.MONGODB_URI || 'mongodb+srv://vet-network:vet-network-2025@cluster0.z2g7d.mongodb.net/vet-network?retryWrites=true&w=majority';
+  const remoteUri = process.env.MONGODB_URI;
   const localUri = process.env.LOCAL_MONGODB_URI || 'mongodb://127.0.0.1:27017/vetapp';
 
   if (remoteUri) {

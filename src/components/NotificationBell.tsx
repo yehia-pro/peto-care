@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Bell, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
+import { API_BASE_URL } from '@/services/api';
 
 interface Reminder {
     _id: string
@@ -25,7 +26,7 @@ const NotificationBell: React.FC = () => {
 
     const fetchReminders = async () => {
         try {
-            const response = await fetch('/api/reminders?upcoming=true', {
+            const response = await fetch(API_BASE_URL + '/reminders?upcoming=true', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }

@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { authAPI, uploadAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/imageHelper';
+import { API_BASE_URL } from '@/services/api';
 
 interface UserProfile {
   fullName: string;
@@ -100,8 +101,8 @@ const Profile: React.FC = () => {
       // Fetch appointments and records for customer
       // This assumes endpoints exist
       const [aptRes, recRes] = await Promise.all([
-        fetch('/api/appointments/my-appointments', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
-        fetch('/api/records', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
+        fetch(API_BASE_URL + '/appointments/my-appointments', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
+        fetch(API_BASE_URL + '/records', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
       ]);
 
       if (aptRes.ok) {

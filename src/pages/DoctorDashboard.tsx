@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/authStore'
 import { Video, Upload, Eye, Heart, MessageCircle, Calendar, Users, TrendingUp, Award, Trash2, AlertCircle, Settings, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { authAPI } from '../services/api' // Import authAPI
+import { API_BASE_URL } from '@/services/api';
 
 const DoctorDashboard = lazy(() => import('./DoctorDashboard'))
 
@@ -123,7 +124,7 @@ const DoctorDashboardWrapper: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/doctor/dashboard', {
+      const response = await fetch(API_BASE_URL + '/doctor/dashboard', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -140,7 +141,7 @@ const DoctorDashboardWrapper: React.FC = () => {
 
   const fetchVideos = async () => {
     try {
-      const response = await fetch('/api/videos/my-videos', {
+      const response = await fetch(API_BASE_URL + '/videos/my-videos', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -191,7 +192,7 @@ const DoctorDashboardWrapper: React.FC = () => {
       formData.append('tags', uploadForm.tags)
       formData.append('isPublic', uploadForm.isPublic.toString())
 
-      const response = await fetch('/api/videos/upload', {
+      const response = await fetch(API_BASE_URL + '/videos/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -227,7 +228,7 @@ const DoctorDashboardWrapper: React.FC = () => {
     if (!confirm(t('doctor.confirm.deleteVideo'))) return
 
     try {
-      const response = await fetch(`/api/videos/${videoId}`, {
+      const response = await fetch(`${API_BASE_URL}/videos/${videoId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -248,7 +249,7 @@ const DoctorDashboardWrapper: React.FC = () => {
 
   const handleToggleVisibility = async (videoId: string, isPublic: boolean) => {
     try {
-      const response = await fetch(`/api/videos/${videoId}/visibility`, {
+      const response = await fetch(`${API_BASE_URL}/videos/${videoId}/visibility`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

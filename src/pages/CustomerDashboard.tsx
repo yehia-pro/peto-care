@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
 import { MessageCircle, User, Calendar, Heart, MapPin, Camera, Plus, Edit, Trash2, Clock, Bell } from 'lucide-react'
 import { toast } from 'sonner'
+import { API_BASE_URL } from '@/services/api';
 
 interface Pet {
   id: string
@@ -83,7 +84,7 @@ const CustomerDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/customer/dashboard', {
+      const response = await fetch(API_BASE_URL + '/customer/dashboard', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -100,7 +101,7 @@ const CustomerDashboard: React.FC = () => {
 
   const fetchPets = async () => {
     try {
-      const response = await fetch('/api/records/my-pets', {
+      const response = await fetch(API_BASE_URL + '/records/my-pets', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -117,7 +118,7 @@ const CustomerDashboard: React.FC = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await fetch('/api/appointments/my-appointments', {
+      const response = await fetch(API_BASE_URL + '/appointments/my-appointments', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -222,7 +223,7 @@ const CustomerDashboard: React.FC = () => {
     if (!confirm(t('messages.confirmDeletePet'))) return
 
     try {
-      const response = await fetch(`/api/records/${petId}`, {
+      const response = await fetch(`${API_BASE_URL}/records/${petId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

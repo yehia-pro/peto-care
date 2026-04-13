@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLanguageStore } from '@/stores/languageStore'
+import { API_BASE_URL } from '@/services/api';
 
 export default function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { setLanguage, currentLanguage } = useLanguageStore()
@@ -17,7 +18,7 @@ export default function LanguageProvider({ children }: { children: React.ReactNo
         const hasKey = Boolean((import.meta as any).env?.VITE_GEMINI_API_KEY)
         if (!hasKey) return text
         try {
-          const res = await fetch('/api/gemini/translate', {
+          const res = await fetch(API_BASE_URL + '/gemini/translate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, target })

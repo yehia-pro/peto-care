@@ -2,10 +2,6 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://yehia-ayman-peto-care-server.hf.space/api/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
