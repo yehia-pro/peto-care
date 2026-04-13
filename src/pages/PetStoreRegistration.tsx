@@ -173,6 +173,11 @@ const PetStoreRegistration: React.FC = () => {
       return
     }
 
+    if (!idFrontImage || !idBackImage) {
+      toast.error('يجب رفع صورة وجه وظهر بطاقة الهوية لتأكيد هوية المتجر')
+      return
+    }
+
     setLoading(true)
 
     try {

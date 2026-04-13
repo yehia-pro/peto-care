@@ -66,6 +66,8 @@ const Login = () => {
         toast.error('كلمة المرور غير صحيحة');
       } else if (code === 'account_locked') {
         toast.error(t('auth.accountLocked'));
+      } else if (code === 'account_pending_approval') {
+        toast.warning('حسابك قيد المراجعة من قبل الإدارة. سيتم إشعارك عبر البريد الإلكتروني بعد الموافقة.');
       } else if (code === 'captcha_required') {
         setCaptchaId(error.response.data.captcha_id);
         setCaptchaQuestion(error.response.data.captcha_question);

@@ -69,6 +69,9 @@ router.post('/register', upload.fields([
       if (!commercialRegImageUrl) {
         return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صورة السجل التجاري للمتجر' })
       }
+      if (!idFrontUrl || !idBackUrl) {
+        return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صورة وجه وظهر بطاقة الهوية للمتجر' })
+      }
     }
     const created = await MUserModel.create({
       email: req.body.email,

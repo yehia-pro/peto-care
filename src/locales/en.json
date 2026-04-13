@@ -703,7 +703,8 @@
             "food": "Food",
             "medicine": "Medicine",
             "hygiene": "Hygiene",
-            "accessories": "Accessories"
+            "accessories": "Accessories",
+            "essentials": "Essentials"
         },
         "labels": {
             "supportedCurrencies": "Approximate prices in other currencies:",
@@ -881,5 +882,17 @@
         "emptyDesc": "Browse our products and add what you like to your favorites to return to it later.",
         "added": "Added to favorites",
         "removed": "Removed from favorites"
+    },
+    "countries": {
+        "egypt": "Egypt",
+        "saudi": "Saudi Arabia",
+        "uae": "United Arab Emirates",
+        "kuwait": "Kuwait",
+        "qatar": "Qatar",
+        "bahrain": "Bahrain",
+        "oman": "Oman"
+    },
+    "records": {
+        "city": "City"
     }
 }

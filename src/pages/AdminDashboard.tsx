@@ -235,6 +235,8 @@ export default function AdminDashboard() {
                           {user.role === 'petstore' && (
                             <>
                               {renderDocumentButton(user.commercialRegImageUrl, 'السجل التجاري')}
+                              {renderDocumentButton(user.idFrontUrl, 'وجه البطاقة')}
+                              {renderDocumentButton(user.idBackUrl, 'ظهر البطاقة')}
                             </>
                           )}
                         </div>
