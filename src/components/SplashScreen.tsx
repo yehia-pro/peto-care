@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import petoLogo from '/icon-192.png';
 
 const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [stage, setStage] = useState<'animating' | 'fading'>('animating');
@@ -36,7 +35,7 @@ const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
 
       <div className="relative z-10 flex flex-col items-center animate-bounce-slow">
         <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-full mb-6 flex items-center justify-center border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.2)] animate-pulse">
-          <img src={petoLogo} alt="Peto Care" className="w-20 h-20 object-contain drop-shadow-md" />
+          <img src="/icon-192.png" alt="Peto Care" className="w-20 h-20 object-contain drop-shadow-md" />
         </div>
         
         <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-primary-100 to-white tracking-wider animate-pulse mb-2">
