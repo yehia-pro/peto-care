@@ -178,6 +178,19 @@ export default function AdminDashboard() {
               <p className="text-gray-500 text-sm">أكواد الخصم والعروض الخاصة</p>
             </div>
           </div>
+
+          <div 
+            onClick={() => navigate('/admin/manage-stores')}
+            className="bg-white p-6 rounded-2xl shadow-sm border-2 border-transparent hover:border-amber-500 hover:shadow-lg transition-all cursor-pointer flex items-center gap-4 group"
+          >
+            <div className="bg-amber-100 p-4 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+              <Store className="w-10 h-10" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">إدارة المتاجر الشريكة</h3>
+              <p className="text-gray-500 text-sm">مراقبة المتاجر وإصلاح السجلات الناقصة</p>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (

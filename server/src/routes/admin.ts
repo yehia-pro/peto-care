@@ -210,6 +210,98 @@ router.delete('/reject/:id', requireAuth(['admin']), async (req, res) => {
 
 // --- END NEW ROUTES ---
 
+// --- STORES MANAGEMENT ROUTES ---
+
+// Get all petstore users with their PetStore document status
+router.get('/stores', requireAuth(['admin']), async (_req, res) => {
+  try {
+    // Get all petstore users
+    const petstoreUsers = await MUserModel.find({ role: 'petstore' })
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .lean() as any[]
+
+    // Get all PetStore documents
+    const petStoreDocs = await MPetStoreModel.find({}).lean() as any[]
+
+    // Map userId → PetStore doc
+    const storeByUserId: Record<string, any> = {}
+    for (const doc of petStoreDocs) {
+      storeByUserId[doc.userId] = doc
+    }
+
+    // Merge: each user + their store status
+    const result = petstoreUsers.map(user => ({
+      userId: user._id.toString(),
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone || '',
+      isApproved: user.isApproved,
+      createdAt: user.createdAt,
+      hasStoreRecord: !!storeByUserId[user._id.toString()],
+      store: storeByUserId[user._id.toString()] || null
+    }))
+
+    res.json({ stores: result })
+  } catch (error) {
+    console.error('Error fetching admin stores:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to fetch stores' })
+  }
+})
+
+// Fix / create missing PetStore record for an approved petstore user
+router.post('/stores/:userId/fix-store', requireAuth(['admin']), async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    const user = await MUserModel.findById(userId).lean() as any
+    if (!user) return res.status(404).json({ error: 'not_found', message: 'User not found' })
+    if (user.role !== 'petstore') return res.status(400).json({ error: 'wrong_role', message: 'User is not a petstore' })
+
+    // Check if already exists
+    const existing = await MPetStoreModel.findOne({ userId })
+    if (existing) {
+      return res.json({ success: true, message: 'Store record already exists', store: existing, alreadyExisted: true })
+    }
+
+    // Parse contact field
+    let contact: any = {}
+    try { contact = typeof user.contact === 'string' ? JSON.parse(user.contact) : (user.contact || {}) } catch (_) {}
+
+    const placeholder = 'https://placehold.co/600x400'
+    const created = await MPetStoreModel.create({
+      userId,
+      storeName: user.storeName || contact.storeName || user.fullName,
+      storeType: contact.storeType || user.storeType || 'comprehensive',
+      description: contact.description || user.description || '',
+      phone: user.phone || contact.phone || '',
+      whatsapp: contact.whatsapp || user.whatsapp || '',
+      openingTime: contact.openingTime || '09:00',
+      closingTime: contact.closingTime || '21:00',
+      services: Array.isArray(contact.services)
+        ? contact.services
+        : typeof contact.services === 'string' && contact.services
+          ? contact.services.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : [],
+      brands: Array.isArray(contact.brands)
+        ? contact.brands
+        : typeof contact.brands === 'string' && contact.brands
+          ? contact.brands.split(',').map((b: string) => b.trim()).filter(Boolean)
+          : [],
+      city: contact.city || user.city || '',
+      address: contact.address || user.address || '',
+      commercialRegImageUrl: user.commercialRegImageUrl || placeholder,
+      rating: 0
+    })
+
+    console.log(`[Admin] Fixed PetStore for user ${userId}`)
+    res.json({ success: true, message: 'Store record created successfully', store: created })
+  } catch (error) {
+    console.error('Error fixing store:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to fix store record' })
+  }
+})
+
 import Coupon from '../models/Coupon';
 
 // --- COUPON MANAGEMENT ROUTES ---

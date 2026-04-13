@@ -35,6 +35,7 @@ const AdminTransactions = lazy(() => import('./pages/admin/Transactions'))
 const AdminManagePetGuides = lazy(() => import('./pages/admin/ManagePetGuides'))
 const AdminManageDiseases = lazy(() => import('./pages/admin/ManageDiseases'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
+const AdminManageStores = lazy(() => import('./pages/admin/AdminManageStores'))
 const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'))
 const CustomerDashboard = lazy(() => import('./pages/CustomerDashboard'))
 const PetStoreDashboard = lazy(() => import('./pages/PetStoreDashboard'))
@@ -165,6 +166,10 @@ function App() {
                     <Route
                       path="/admin/manage-coupons"
                       element={isAuthenticated ? <SuspenseWrapper><AdminCoupons /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                    />
+                    <Route
+                      path="/admin/manage-stores"
+                      element={isAuthenticated ? <SuspenseWrapper><AdminManageStores /></SuspenseWrapper> : <Navigate to="/login" replace />}
                     />
                     <Route
                       path="/doctor-dashboard"
