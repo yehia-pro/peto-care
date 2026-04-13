@@ -28,7 +28,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.weglot.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https://api.weglot.com https://weglot.com https://yehia-ayman-peto-care-server.hf.space;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https://cdn.weglot.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ws: wss: https://api.weglot.com https://weglot.com https://yehia-ayman-peto-care-server.hf.space;"
         }
       ]
     },
