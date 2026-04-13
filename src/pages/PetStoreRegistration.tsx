@@ -12,13 +12,12 @@ const petStoreSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   businessLicense: z.string().min(3),
-  storeType: z.enum(['pet_shop', 'pet_supplies', 'veterinary_pharmacy', 'grooming', 'boarding']),
+  storeType: z.enum(['comprehensive', 'clinic', 'grooming', 'boarding', 'training', 'pharmacy']),
   description: z.string().optional(),
   address: z.string().min(5),
   city: z.string().min(2),
   country: z.string().min(2),
   phone: z.string().min(8),
-  website: z.string().url().optional().or(z.literal('')),
   whatsapp: z.string().optional().or(z.literal('')),
   openingTime: z.string().optional(),
   closingTime: z.string().optional(),
@@ -40,13 +39,12 @@ const PetStoreRegistration: React.FC = () => {
     email: '',
     password: '',
     businessLicense: '',
-    storeType: 'pet_shop',
+    storeType: 'comprehensive',
     description: '',
     address: '',
     city: '',
     country: t('governorates.cairo'),
     phone: '',
-    website: '',
     whatsapp: '',
     openingTime: '09:00',
     closingTime: '21:00',
@@ -65,21 +63,21 @@ const PetStoreRegistration: React.FC = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof PetStoreFormData, string>>>({})
 
   const storeTypes = useMemo(() => [
-    { value: 'pet_shop', label: t('registration.petStore.types.pet_shop') },
-    { value: 'pet_supplies', label: t('registration.petStore.types.pet_supplies') },
-    { value: 'veterinary_pharmacy', label: t('registration.petStore.types.veterinary_pharmacy') },
+    { value: 'comprehensive', label: t('registration.petStore.types.comprehensive') },
+    { value: 'clinic', label: t('registration.petStore.types.clinic') },
     { value: 'grooming', label: t('registration.petStore.types.grooming') },
-    { value: 'boarding', label: t('registration.petStore.types.boarding') }
+    { value: 'boarding', label: t('registration.petStore.types.boarding') },
+    { value: 'training', label: t('registration.petStore.types.training') },
+    { value: 'pharmacy', label: t('registration.petStore.types.pharmacy') }
   ], [t])
 
   const availableServices = useMemo(() => [
-    t('registration.petStore.types.pet_shop'),
-    t('registration.petStore.types.pet_supplies'),
+    t('registration.petStore.types.comprehensive'),
+    t('registration.petStore.types.clinic'),
     t('registration.petStore.types.grooming'),
     t('registration.petStore.types.boarding'),
-    t('products.categories.food'),
-    t('products.categories.accessories'),
-    t('products.categories.essentials')
+    t('registration.petStore.types.training'),
+    t('registration.petStore.types.pharmacy')
   ], [t])
 
   const governorates = useMemo(() => [
@@ -525,37 +523,19 @@ const PetStoreRegistration: React.FC = () => {
               {/* Step 3: Contact & Services */}
               {currentStep === 3 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        {t('registration.petStore.website')}
-                      </label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <input
-                          type="url"
-                          name="website"
-                          value={formData.website}
-                          onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all"
-                          placeholder="https://example.com"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        {t('registration.petStore.whatsapp')}
-                      </label>
-                      <input
-                        type="tel"
-                        name="whatsapp"
-                        value={formData.whatsapp}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all"
-                        placeholder="+201234567890"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      {t('registration.petStore.whatsapp')}
+                    </label>
+                    <input
+                      type="tel"
+                      name="whatsapp"
+                      dir="ltr"
+                      value={formData.whatsapp}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all text-left"
+                      placeholder="+20 123 456 7890"
+                    />
                   </div>
 
                   <div className="space-y-4">
