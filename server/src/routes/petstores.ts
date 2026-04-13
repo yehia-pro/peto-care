@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth'
 import MPetStoreModel from '../models/PetStore'
+import MUserModel from '../models/User'
 import { JsonDb } from '../utils/jsonDb'
 
 const router = express.Router()
@@ -59,14 +60,56 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/profile', requireAuth(['petstore']), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user!.id
+
+    // 1. Try MongoDB
     try {
       const petStore = await MPetStoreModel.findOne({ userId }).lean()
       if (petStore) return res.json({ petStore })
-    } catch (e) { }
+    } catch (e) { console.error('[Profile] MongoDB findOne error:', e) }
 
-    const petStore = memStores.find(s => s.userId === userId)
-    if (!petStore) return res.status(404).json({ error: 'not_found' })
-    res.json({ petStore })
+    // 2. Try in-memory store
+    const memStore = memStores.find(s => s.userId === userId)
+    if (memStore) return res.json({ petStore: memStore })
+
+    // 3. Self-healing: create PetStore if user is approved petstore
+    try {
+      const userDoc = await MUserModel.findById(userId).lean() as any
+      if (userDoc && userDoc.isApproved && userDoc.role === 'petstore') {
+        let contact: any = {}
+        try { contact = typeof userDoc.contact === 'string' ? JSON.parse(userDoc.contact) : (userDoc.contact || {}) } catch (_) {}
+        const placeholder = 'https://placehold.co/600x400'
+        const created = await MPetStoreModel.create({
+          userId,
+          storeName: userDoc.storeName || contact.storeName || userDoc.fullName,
+          storeType: contact.storeType || userDoc.storeType || 'comprehensive',
+          description: contact.description || userDoc.description || '',
+          phone: userDoc.phone || contact.phone || '',
+          whatsapp: contact.whatsapp || userDoc.whatsapp || '',
+          openingTime: contact.openingTime || '09:00',
+          closingTime: contact.closingTime || '21:00',
+          services: Array.isArray(contact.services)
+            ? contact.services
+            : typeof contact.services === 'string' && contact.services
+              ? contact.services.split(',').map((s: string) => s.trim()).filter(Boolean)
+              : [],
+          brands: Array.isArray(contact.brands)
+            ? contact.brands
+            : typeof contact.brands === 'string' && contact.brands
+              ? contact.brands.split(',').map((b: string) => b.trim()).filter(Boolean)
+              : [],
+          city: contact.city || userDoc.city || '',
+          address: contact.address || userDoc.address || '',
+          commercialRegImageUrl: userDoc.commercialRegImageUrl || placeholder,
+          rating: 0
+        })
+        console.log(`[Profile] Auto-created PetStore for approved user ${userId}`)
+        return res.json({ petStore: created })
+      }
+    } catch (healErr) {
+      console.error('[Profile] Self-heal PetStore creation failed:', healErr)
+    }
+
+    return res.status(404).json({ error: 'not_found' })
   } catch (error) {
     next(error)
   }
