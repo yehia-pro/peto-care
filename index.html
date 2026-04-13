@@ -39,7 +39,7 @@
     <link rel="canonical" href="https://yourdomain.com" />
     
     <!-- Preload critical resources -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" />
+    <link rel="preconnect" href="https://cdn.weglot.com" crossorigin />
     
     <!-- DNS Prefetch for external domains -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -172,7 +172,12 @@
       <!-- Loading state -->
       <div class="app-loader-container">
         <div class="loader-logo-wrapper">
-          <img src="/icon-192.png" alt="Peto Care" style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" />
+          <img
+            src="/icon-192.png"
+            alt="Peto Care"
+            style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));"
+            onerror="this.style.display='none'; this.parentNode.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'url(#g)\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><defs><linearGradient id=\'g\' x1=\'0%\' y1=\'0%\' x2=\'100%\' y2=\'100%\'><stop offset=\'0%\' stop-color=\'#2563eb\'/><stop offset=\'100%\' stop-color=\'#7c3aed\'/></linearGradient></defs><circle cx=\'11.5\' cy=\'3.5\' r=\'1.5\'/><circle cx=\'17.5\' cy=\'5.5\' r=\'1.5\'/><circle cx=\'5.5\' cy=\'5.5\' r=\'1.5\'/><circle cx=\'3.5\' cy=\'10.5\' r=\'1.5\'/><circle cx=\'19.5\' cy=\'10.5\' r=\'1.5\'/><path d=\'M12 21c-4 0-7-3-7-6 0-2 1.5-3.5 3-4.5 1-.7 2-1.5 4-1.5s3 .8 4 1.5c1.5 1 3 2.5 3 4.5 0 3-3 6-7 6z\'/></svg>';"
+          />
         </div>
         <div class="loader-text">Welcome to peto care</div>
         <div class="loader-subtext">
