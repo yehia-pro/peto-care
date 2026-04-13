@@ -50,6 +50,7 @@ export default function VetRegistration() {
   const [idFrontImage, setIdFrontImage] = useState<File | null>(null)
   const [idBackImage, setIdBackImage] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof VetFormData, string>>>({})
 
   const governorates = useMemo(() => [
@@ -121,6 +122,11 @@ export default function VetRegistration() {
 
     if (!validateFiles()) return
 
+    setShowConfirmModal(true)
+  }
+
+  const confirmSubmit = async () => {
+    setShowConfirmModal(false)
     setSubmitting(true)
     try {
       const form = new FormData()
@@ -423,6 +429,51 @@ export default function VetRegistration() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200" dir="rtl">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center scale-in-center">
+            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-50 mb-6 border-4 border-white shadow-sm">
+              <CheckCircle2 className="h-10 w-10 text-[var(--color-vet-primary)]" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              تأكيد إرسال الطلب
+            </h3>
+            
+            <p className="text-gray-600 mb-8 leading-relaxed text-sm">
+              هل أنت متأكد من صحة جميع البيانات والمستندات المرفقة؟ بمجرد الإرسال، سيتطلب الأمر مراجعة الإدارة ولا يمكنك التعديل المباشر.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={submitting}
+                className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all text-sm"
+              >
+                المراجعة والتعديل
+              </button>
+              <button
+                type="button"
+                onClick={confirmSubmit}
+                disabled={submitting}
+                className="flex-1 px-6 py-3 bg-[var(--color-vet-primary)] text-white font-bold rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 text-sm"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  'نعم، تأكيد الإرسال'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
