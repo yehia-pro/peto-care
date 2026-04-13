@@ -110,7 +110,7 @@ router.put('/approve/:id', requireAuth(['admin']), async (req, res) => {
             </div>
 
             <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${process.env.APP_URL || 'http://localhost:5173'}/login"
+              <a href="${req.headers.origin || process.env.APP_URL || 'https://yehia-pro-peto-care.hf.space'}/login"
                  style="display: inline-block; padding: 14px 32px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                 🚀 تسجيل الدخول الآن
               </a>
@@ -216,13 +216,28 @@ router.delete('/reject/:id', requireAuth(['admin']), async (req, res) => {
 router.get('/stores', requireAuth(['admin']), async (_req, res) => {
   try {
     // Get all petstore users
-    const petstoreUsers = await MUserModel.find({ role: 'petstore' })
+    const mongoPetstoreUsers = await MUserModel.find({ role: 'petstore' })
       .select('-passwordHash')
       .sort({ createdAt: -1 })
       .lean() as any[]
+    
+    // Fallback to memory json db (trial users missing from mongo)
+    const memUsersList: any[] = JsonDb.read('users.json', [])
+    const memPetstoreUsers = memUsersList.filter(u => u.role === 'petstore')
+    
+    // Combine and deduplicate by email or id
+    const seenIds = new Set<string>()
+    const petstoreUsers = [...mongoPetstoreUsers, ...memPetstoreUsers].filter(u => {
+      const idStr = (u._id || u.id)?.toString()
+      if (seenIds.has(idStr)) return false
+      seenIds.add(idStr)
+      return true
+    })
 
     // Get all PetStore documents
-    const petStoreDocs = await MPetStoreModel.find({}).lean() as any[]
+    const mongoPetStoreDocs = await MPetStoreModel.find({}).lean() as any[]
+    const memStoresList: any[] = JsonDb.read('stores.json', [])
+    const petStoreDocs = [...mongoPetStoreDocs, ...memStoresList]
 
     // Map userId → PetStore doc
     const storeByUserId: Record<string, any> = {}
@@ -231,16 +246,19 @@ router.get('/stores', requireAuth(['admin']), async (_req, res) => {
     }
 
     // Merge: each user + their store status
-    const result = petstoreUsers.map(user => ({
-      userId: user._id.toString(),
-      fullName: user.fullName,
-      email: user.email,
-      phone: user.phone || '',
-      isApproved: user.isApproved,
-      createdAt: user.createdAt,
-      hasStoreRecord: !!storeByUserId[user._id.toString()],
-      store: storeByUserId[user._id.toString()] || null
-    }))
+    const result = petstoreUsers.map(user => {
+      const uId = (user._id || user.id).toString()
+      return {
+        userId: uId,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone || '',
+        isApproved: user.isApproved,
+        createdAt: user.createdAt,
+        hasStoreRecord: !!storeByUserId[uId],
+        store: storeByUserId[uId] || null
+      }
+    })
 
     res.json({ stores: result })
   } catch (error) {
@@ -299,6 +317,30 @@ router.post('/stores/:userId/fix-store', requireAuth(['admin']), async (req, res
   } catch (error) {
     console.error('Error fixing store:', error)
     res.status(500).json({ error: 'server_error', message: 'Failed to fix store record' })
+  }
+})
+
+// Delete a petstore user entirely (User + PetStore record)
+router.delete('/stores/:userId', requireAuth(['admin']), async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    // 1. Delete from mongo
+    try { await MUserModel.findByIdAndDelete(userId) } catch(e){}
+    try { await MPetStoreModel.findOneAndDelete({ userId }) } catch (e){}
+
+    // 2. Delete from JsonDb
+    const allUsers = JsonDb.read('users.json', [])
+    JsonDb.write('users.json', allUsers.filter((u: any) => (u._id || u.id)?.toString() !== userId))
+
+    const allStores = JsonDb.read('stores.json', [])
+    JsonDb.write('stores.json', allStores.filter((s: any) => s.userId !== userId))
+
+    console.log(`[Admin] Deleted PetStore user ${userId} and their records entirely.`)
+    res.json({ success: true, message: 'PetStore removed successfully' })
+  } catch (error) {
+    console.error('Error deleting store:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to delete store record' })
   }
 })
 

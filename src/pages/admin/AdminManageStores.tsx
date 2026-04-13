@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Store, CheckCircle, XCircle, Wrench, RefreshCw, ArrowRight, Phone, Mail, Clock } from 'lucide-react'
+import { Store, CheckCircle, XCircle, Wrench, RefreshCw, ArrowRight, Phone, Mail, Clock, Trash2 } from 'lucide-react'
 import api from '@/services/api'
 
 interface StoreEntry {
@@ -63,6 +63,17 @@ export default function AdminManageStores() {
       toast.error(err?.response?.data?.message || 'فشل إصلاح المتجر')
     } finally {
       setFixingId(null)
+    }
+  }
+
+  const handleDeleteStore = async (userId: string, fullName: string) => {
+    if (!confirm(`هل أنت متأكد من حذف متجر "${fullName}" وكل بياناته تماماً؟ هذا الإجراء لا يمكن التراجع عنه!`)) return
+    try {
+      await api.delete(`/admin/stores/${userId}`)
+      toast.success(`تم حذف متجر ${fullName} بنجاح`)
+      fetchStores()
+    } catch (err: any) {
+      toast.error('فشل حذف المتجر')
     }
   }
 
@@ -284,24 +295,34 @@ export default function AdminManageStores() {
 
                       {/* Action */}
                       <td className="px-5 py-4 text-center">
-                        {!entry.hasStoreRecord && entry.isApproved ? (
+                        <div className="flex items-center justify-center gap-2">
+                          {!entry.hasStoreRecord && entry.isApproved ? (
+                            <button
+                              onClick={() => handleFixStore(entry.userId, entry.fullName)}
+                              disabled={fixingId === entry.userId}
+                              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm disabled:opacity-50 active:scale-95"
+                            >
+                              {fixingId === entry.userId ? (
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Wrench className="w-4 h-4" />
+                              )}
+                              {fixingId === entry.userId ? 'جاري الإصلاح...' : 'إصلاح فوري'}
+                            </button>
+                          ) : entry.hasStoreRecord ? (
+                            <span className="text-xs text-gray-400">لا يحتاج إصلاح</span>
+                          ) : (
+                            <span className="text-xs text-gray-400">يحتاج اعتماد</span>
+                          )}
+
                           <button
-                            onClick={() => handleFixStore(entry.userId, entry.fullName)}
-                            disabled={fixingId === entry.userId}
-                            className="flex items-center gap-2 mx-auto px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm disabled:opacity-50 active:scale-95"
+                            onClick={() => handleDeleteStore(entry.userId, entry.fullName)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="حذف المتجر نهائياً"
                           >
-                            {fixingId === entry.userId ? (
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Wrench className="w-4 h-4" />
-                            )}
-                            {fixingId === entry.userId ? 'جاري الإصلاح...' : 'إصلاح فوري'}
+                            <Trash2 className="w-5 h-5" />
                           </button>
-                        ) : entry.hasStoreRecord ? (
-                          <span className="text-xs text-gray-400">لا يحتاج إصلاح</span>
-                        ) : (
-                          <span className="text-xs text-gray-400">يحتاج اعتماد أولاً</span>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}

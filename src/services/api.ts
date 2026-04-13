@@ -186,6 +186,7 @@ export const adminAPI = {
   getPendingUsers: () => api.get('/admin/pending'),
   approveUser: (id: string) => api.put(`/admin/approve/${id}`),
   rejectUser: (id: string) => api.delete(`/admin/reject/${id}`),
+  deleteStore: (userId: string) => api.delete(`/admin/stores/${userId}`),
   getTransactions: (page = 1, limit = 20, status?: string) => api.get('/transactions', { params: { page, limit, status } }),
 }
 
