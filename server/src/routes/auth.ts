@@ -73,16 +73,34 @@ router.post('/register', upload.fields([
         return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صورة وجه وظهر بطاقة الهوية للمتجر' })
       }
     }
+
+    // Build the contact fallback JSON from the form data fields (so that auto-heal in admin.ts can recreate stores)
+    let contactStr = req.body.contact || '';
+    if (userRole === 'petstore' || userRole === 'vet') {
+      try {
+        const contactObj = contactStr ? JSON.parse(contactStr) : {};
+        // Merge petstore/vet specific fields from the root body
+        const keys = ['storeType', 'description', 'phone', 'whatsapp', 'openingTime', 'closingTime', 'city', 'address', 'services', 'brands', 'storeName'];
+        keys.forEach(k => {
+            if (req.body[k] !== undefined) contactObj[k] = req.body[k];
+        });
+        contactStr = JSON.stringify(contactObj);
+      } catch (e) {
+        console.error('Failed to parse contact string', e);
+      }
+    }
+
     const created = await MUserModel.create({
       email: req.body.email,
       passwordHash,
       fullName: req.body.fullName,
       role: userRole,
       phone: req.body.phone,
-      contact: req.body.contact,
+      contact: contactStr,
       syndicateCardImageUrl,
       idFrontUrl,
       idBackUrl,
+
       commercialRegImageUrl,
       isApproved: false,
     })
