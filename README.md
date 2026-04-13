@@ -1,3 +1,12 @@
+---
+title: Peto Care Server
+emoji: 🐾
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+---
+
 Veterinary Network Platform - Full scaffold
 -------------------------------------------
 After extracting:
