@@ -76,32 +76,30 @@ router.get('/stats', requireAuth(['petstore']), async (req: Request, res: Respon
   try {
     const userId = (req as any).user!.id
 
-    // Find store ID
     let storeId = ''
+    let mongoProductsCount = 0
     try {
       const store = await MPetStoreModel.findOne({ userId }).lean() as any
-      if (store && !Array.isArray(store)) storeId = store._id.toString()
+      if (store && !Array.isArray(store)) {
+        storeId = store._id.toString()
+        mongoProductsCount = Array.isArray(store.products) ? store.products.length : 0
+      }
     } catch (e) { }
     if (!storeId) {
       const store = memStores.find(s => s.userId === userId)
       if (store) storeId = store.id
     }
 
-    const totalOrders = 0 // Migrating TypeORM -> Mongoose
-    const totalRevenue = 0
-    const newCustomers = 0
-
-    const totalProducts = memProducts.filter(p => p.storeId === storeId).length
+    const totalProducts = mongoProductsCount || memProducts.filter(p => p.storeId === storeId).length
 
     return res.json({
       stats: {
+        productsCount: totalProducts,
         totalProducts,
-        totalViews: Math.floor(Math.random() * 100), // Placeholder for views until view tracking is added
-        totalOrders: 0,
-        totalRevenue: 0,
-        averageRating: 4.8, // Placeholder until reviews are linked
-        activeListings: totalProducts,
-        newCustomers: 0
+        rating: 0,
+        reviewCount: 0,
+        revenue: 0,
+        ordersCount: 0
       }
     })
   } catch (error) {
