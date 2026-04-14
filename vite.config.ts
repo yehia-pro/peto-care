@@ -5,15 +5,25 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/',
-  experimental: {
-    renderBuiltUrl(filename: string, { hostType }: { hostType: string }) {
-      if (hostType === 'html') {
-        return '/' + filename
+  plugins: [
+    react(),
+    // Plugin to fix relative ./assets/ paths → absolute /assets/ in built HTML
+    {
+      name: 'fix-absolute-paths',
+      enforce: 'post' as const,
+      generateBundle(_options: unknown, bundle: Record<string, { type: string; source?: string | Uint8Array; fileName: string }>) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type === 'asset' && chunk.fileName === 'index.html' && typeof chunk.source === 'string') {
+            chunk.source = chunk.source
+              .replace(/src="\.\/assets\//g, 'src="/assets/')
+              .replace(/href="\.\/assets\//g, 'href="/assets/')
+              .replace(/src="assets\//g, 'src="/assets/')
+              .replace(/href="assets\//g, 'href="/assets/');
+          }
+        }
       }
-      return filename
     }
-  },
-  plugins: [react()],
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

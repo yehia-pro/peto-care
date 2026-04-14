@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:cf": "tsc && vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\"",
+    "build:cf": "tsc && vite build && node -e \"const fs=require('fs');let h=fs.readFileSync('dist/index.html','utf8');h=h.replace(/src=\\\"[.]\\/assets\\//g,'src=\\\"/assets/').replace(/href=\\\"[.]\\/assets\\//g,'href=\\\"/assets/');fs.writeFileSync('dist/index.html',h);fs.copyFileSync('dist/index.html','dist/404.html');console.log('dist/index.html and 404.html fixed with absolute paths');\"",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start:all": "start-all.bat",
