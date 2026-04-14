@@ -5,6 +5,14 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/',
+  experimental: {
+    renderBuiltUrl(filename: string, { hostType }: { hostType: string }) {
+      if (hostType === 'html') {
+        return '/' + filename
+      }
+      return filename
+    }
+  },
   plugins: [react()],
   resolve: {
     alias: {
