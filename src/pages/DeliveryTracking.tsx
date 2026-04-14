@@ -16,7 +16,8 @@ const DeliveryTracking = () => {
 
   useEffect(() => {
     try {
-      socketRef.current = io('http://localhost:4000')
+      const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace('/api', '')
+      socketRef.current = io(SOCKET_URL)
       socketRef.current.on('delivery:status', (p: any) => { if (p.orderId === orderId) setStatus(p.status) })
       socketRef.current.on('delivery:assigned', (p: any) => { if (p.orderId === orderId) setStatus('assigned') })
       socketRef.current.on('delivery:location', (p: any) => { if (p.orderId === orderId) setCoords({ lat: p.lat, lng: p.lng }) })

@@ -63,7 +63,8 @@ const Chat = () => {
   }, [messages])
 
   const setupSocket = () => {
-    const newSocket = io('http://localhost:4000', {
+    const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace('/api', '')
+    const newSocket = io(SOCKET_URL, {
       auth: {
         token: localStorage.getItem('token')
       }
