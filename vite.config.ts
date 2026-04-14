@@ -7,34 +7,27 @@ export default defineConfig({
   base: '/',
   plugins: [
     react(),
-    // Plugin to fix relative paths → absolute paths in built HTML
+    // Plugin: force all asset references in built HTML to use absolute paths
     {
-      name: 'fix-absolute-paths',
+      name: 'force-absolute-paths',
       enforce: 'post' as const,
-      generateBundle(_options: unknown, bundle: Record<string, { type: string; source?: string | Uint8Array; fileName: string }>) {
-        for (const chunk of Object.values(bundle)) {
-          if (chunk.type === 'asset' && chunk.fileName === 'index.html' && typeof chunk.source === 'string') {
-            chunk.source = chunk.source
-              // Fix ./assets/ and assets/ paths
-              .replace(/src="\.\/assets\//g, 'src="/assets/')
-              .replace(/href="\.\/assets\//g, 'href="/assets/')
-              .replace(/src="assets\//g, 'src="/assets/')
-              .replace(/href="assets\//g, 'href="/assets/')
-              // Fix manifest.json
-              .replace(/href="manifest\.json"/g, 'href="/manifest.json"')
-              .replace(/href="\.\/manifest\.json"/g, 'href="/manifest.json"')
-              // Fix PWA icons
-              .replace(/href="\.\/icon-/g, 'href="/icon-')
-              .replace(/href="icon-192/g, 'href="/icon-192')
-              .replace(/href="icon-512/g, 'href="/icon-512')
-              .replace(/src="\.\/icon-/g, 'src="/icon-')
-              .replace(/src="icon-192/g, 'src="/icon-192')
-              .replace(/src="icon-512/g, 'src="/icon-512')
-              // Fix vite.svg
-              .replace(/href="vite\.svg"/g, 'href="/vite.svg"')
-              .replace(/href="\.\/vite\.svg"/g, 'href="/vite.svg"');
-          }
-        }
+      transformIndexHtml(html: string) {
+        return html
+          // assets/ directory
+          .replace(/src="\.\/assets\//g, 'src="/assets/')
+          .replace(/href="\.\/assets\//g, 'href="/assets/')
+          .replace(/src="assets\//g, 'src="/assets/')
+          .replace(/href="assets\//g, 'href="/assets/')
+          // manifest.json
+          .replace(/href="manifest\.json"/g, 'href="/manifest.json"')
+          .replace(/href="\.\/manifest\.json"/g, 'href="/manifest.json"')
+          // PWA icons
+          .replace(/href="\.\/icon-/g, 'href="/icon-')
+          .replace(/href="(?!\/)icon-/g, 'href="/icon-')
+          .replace(/src="\.\/icon-/g, 'src="/icon-')
+          .replace(/src="(?!\/)icon-/g, 'src="/icon-')
+          // favicon / vite.svg
+          .replace(/href="(?!\/)(vite\.svg|favicon)/g, 'href="/$1');
       }
     }
   ],
