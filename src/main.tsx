@@ -5,21 +5,38 @@ import './i18n.ts' // Import i18n configuration
 import './index.css'
 import { Toaster } from 'sonner'
 
-// Register service worker for PWA (optional - only if file exists)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Check if service worker file exists before registering
     fetch('/firebase-messaging-sw.js', { method: 'HEAD' })
-      .then(() => {
-        return navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      })
+      .then(() => navigator.serviceWorker.register('/firebase-messaging-sw.js'))
       .then((registration) => {
         console.log('Service Worker registered:', registration)
+
+        // Listen for new SW version — reload page to apply update immediately
+        registration.addEventListener('updatefound', () => {
+          const newSW = registration.installing
+          if (!newSW) return
+
+          newSW.addEventListener('statechange', () => {
+            // New SW installed and old one is still controlling
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[SW] New version available — reloading to apply update...')
+              window.location.reload()
+            }
+          })
+        })
       })
-      .catch((error) => {
-        // Silently fail - service worker is optional
-        console.debug('Service Worker not available:', error)
-      })
+      .catch((error) => console.debug('Service Worker not available:', error))
+  })
+
+  // If SW controller changes (new SW took over), reload once
+  let refreshing = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true
+      console.log('[SW] Controller changed — reloading page')
+      window.location.reload()
+    }
   })
 }
 

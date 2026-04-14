@@ -12,6 +12,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Force immediate activation — clears old SW cache on new deploy
+self.addEventListener('install', (event) => {
+    console.log('[SW] New version installing — skipping wait');
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    console.log('[SW] Activated — claiming all clients');
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    console.log('[SW] Deleting old cache:', cacheName);
+                    return caches.delete(cacheName);
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
+
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message ', payload);
     const notificationTitle = payload.notification.title;
