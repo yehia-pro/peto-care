@@ -1,7 +1,9 @@
 import { io, Socket } from 'socket.io-client'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'https://yehia-ayman-peto-care-server.hf.space/api'
 const SOCKET_URL = API_URL.replace('/api', '')
+console.log('[Socket] VITE_API_URL =', import.meta.env.VITE_API_URL)
+console.log('[Socket] Connecting to:', SOCKET_URL)
 
 interface SocketEvents {
     // Chat events

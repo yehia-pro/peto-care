@@ -63,7 +63,8 @@ const Chat = () => {
   }, [messages])
 
   const setupSocket = () => {
-    const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace('/api', '')
+    const SOCKET_URL = (import.meta.env.VITE_API_URL || 'https://yehia-ayman-peto-care-server.hf.space/api').replace('/api', '')
+    console.log('[Chat] Connecting socket to:', SOCKET_URL)
     const newSocket = io(SOCKET_URL, {
       auth: {
         token: localStorage.getItem('token')

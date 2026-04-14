@@ -16,7 +16,7 @@ const DeliveryTracking = () => {
 
   useEffect(() => {
     try {
-      const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace('/api', '')
+      const SOCKET_URL = (import.meta.env.VITE_API_URL || 'https://yehia-ayman-peto-care-server.hf.space/api').replace('/api', '')
       socketRef.current = io(SOCKET_URL)
       socketRef.current.on('delivery:status', (p: any) => { if (p.orderId === orderId) setStatus(p.status) })
       socketRef.current.on('delivery:assigned', (p: any) => { if (p.orderId === orderId) setStatus('assigned') })
