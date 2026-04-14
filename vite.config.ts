@@ -7,29 +7,32 @@ export default defineConfig({
   base: '/',
   plugins: [
     react(),
-    // Plugin: force all asset references in built HTML to use absolute paths
+    // Plugin: force absolute paths — runs AFTER Vite injects script/link tags
     {
       name: 'force-absolute-paths',
-      enforce: 'post' as const,
-      transformIndexHtml(html: string) {
-        return html
-          // assets/ directory
-          .replace(/src="\.\/assets\//g, 'src="/assets/')
-          .replace(/href="\.\/assets\//g, 'href="/assets/')
-          .replace(/src="assets\//g, 'src="/assets/')
-          .replace(/href="assets\//g, 'href="/assets/')
-          // manifest.json
-          .replace(/href="manifest\.json"/g, 'href="/manifest.json"')
-          .replace(/href="\.\/manifest\.json"/g, 'href="/manifest.json"')
-          // PWA icons
-          .replace(/href="\.\/icon-/g, 'href="/icon-')
-          .replace(/href="(?!\/)icon-/g, 'href="/icon-')
-          .replace(/src="\.\/icon-/g, 'src="/icon-')
-          .replace(/src="(?!\/)icon-/g, 'src="/icon-')
-          // favicon / vite.svg
-          .replace(/href="(?!\/)(vite\.svg|favicon)/g, 'href="/$1');
+      transformIndexHtml: {
+        order: 'post' as const,
+        handler(html: string) {
+          return html
+            // assets/ (handles ./assets/ and assets/ without leading slash)
+            .replace(/src="\.\/assets\//g, 'src="/assets/')
+            .replace(/href="\.\/assets\//g, 'href="/assets/')
+            .replace(/src="assets\//g, 'src="/assets/')
+            .replace(/href="assets\//g, 'href="/assets/')
+            // manifest.json
+            .replace(/href="manifest\.json"/g, 'href="/manifest.json"')
+            .replace(/href="\.\/manifest\.json"/g, 'href="/manifest.json"')
+            // PWA icons
+            .replace(/href="\.\/icon-/g, 'href="/icon-')
+            .replace(/href="(?!\/)icon-/g, 'href="/icon-')
+            .replace(/src="\.\/icon-/g, 'src="/icon-')
+            .replace(/src="(?!\/)icon-/g, 'src="/icon-')
+            // favicon / vite.svg
+            .replace(/href="(?!\/)(vite\.svg|favicon)/g, 'href="/$1');
+        }
       }
     }
+
   ],
   resolve: {
     alias: {
