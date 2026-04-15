@@ -1,12 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
+
+// Plugin that guarantees _redirects (Cloudflare SPA routing) lands in dist/
+const copyRedirectsPlugin = () => ({
+  name: 'copy-redirects',
+  closeBundle() {
+    const src = path.resolve('public/_redirects');
+    const dest = path.resolve('dist/_redirects');
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      console.log('[copy-redirects] ✓ Copied public/_redirects → dist/_redirects');
+    }
+  },
+});
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/',
   plugins: [
     react(),
+    copyRedirectsPlugin(),
 
 
   ],

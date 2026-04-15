@@ -155,7 +155,7 @@ const Register = () => {
                 placeholder="••••••••"
                 required
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} className="absolute inset-y-0 left-0 pl-3 flex items-center">
                 {showPassword ? <EyeOff className="h-5 w-5 text-neutral-400" /> : <Eye className="h-5 w-5 text-neutral-400" />}
               </button>
             </div>
@@ -185,7 +185,7 @@ const Register = () => {
                 placeholder="••••••••"
                 required
               />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} aria-label={showConfirm ? 'إخفاء تأكيد كلمة المرور' : 'إظهار تأكيد كلمة المرور'} className="absolute inset-y-0 left-0 pl-3 flex items-center">
                 {showConfirm ? <EyeOff className="h-5 w-5 text-neutral-400" /> : <Eye className="h-5 w-5 text-neutral-400" />}
               </button>
             </div>

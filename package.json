@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:cf": "tsc && vite build && node scripts/fix-html.mjs",
+    "build": "tsc && vite build && node -e \"require('fs').copyFileSync('public/_redirects','dist/_redirects')\"",
+    "build:cf": "tsc && vite build && node -e \"require('fs').copyFileSync('public/_redirects','dist/_redirects')\" && node scripts/fix-html.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start:all": "start-all.bat",

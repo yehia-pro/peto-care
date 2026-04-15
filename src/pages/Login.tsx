@@ -138,6 +138,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                 className="absolute inset-y-0 left-0 pl-3 flex items-center"
               >
                 {showPassword ? (

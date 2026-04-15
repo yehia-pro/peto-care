@@ -49,6 +49,8 @@ const Home = () => {
                   <img
                     src="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&h=800&fit=crop&q=80"
                     alt={t('home.vets.subtitle')}
+                    width="800"
+                    height="800"
                     className="relative rounded-3xl shadow-2xl max-w-full h-auto transform group-hover:scale-110 transition-transform duration-700"
                     style={{
                       transformStyle: 'preserve-3d',
