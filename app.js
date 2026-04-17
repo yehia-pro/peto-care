@@ -75,7 +75,7 @@ app.get('/api/appointments/my-appointments', (req, res) => {
 });
 
 // بدء الخادم
-const PORT = 4000;
+const PORT = process.env.PORT || 7860;
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
   console.log(`✅ Health check: http://localhost:${PORT}/health`);

@@ -18,22 +18,31 @@ import {
   FileText,
 } from 'lucide-react'
 
-const vetSchema = z.object({
-  fullName: z.string().min(3, 'الاسم يجب أن يكون 3 أحرف على الأقل'),
-  email: z.string().email('بريد إلكتروني غير صالح'),
-  password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
-  phone: z.string().min(8, 'رقم الهاتف غير صالح'),
-  country: z.string().min(1, 'يرجى اختيار المحافظة'),
-  specialization: z.string().min(1, 'يرجى اختيار التخصص'),
-  experienceYears: z.string().min(1, 'يرجى إدخال سنوات الخبرة'),
-  qualification: z.string().min(10, 'يرجى إدخال تفاصيل المؤهل (10 أحرف على الأقل)')
-})
-
-type VetFormData = z.infer<typeof vetSchema>
+type VetFormData = {
+  fullName: string
+  email: string
+  password: string
+  phone: string
+  country: string
+  specialization: string
+  experienceYears: string
+  qualification: string
+}
 
 export default function VetRegistration() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+
+  const vetSchema = useMemo(() => z.object({
+    fullName: z.string().min(3, t('registration.validation.fullNameMin')),
+    email: z.string().email(t('registration.validation.emailInvalid')),
+    password: z.string().min(6, t('registration.validation.passwordMin')),
+    phone: z.string().min(8, t('registration.validation.phoneMin')),
+    country: z.string().min(1, t('registration.validation.countryRequired')),
+    specialization: z.string().min(1, t('registration.validation.specializationRequired')),
+    experienceYears: z.string().min(1, t('registration.validation.experienceRequired')),
+    qualification: z.string().min(10, t('registration.validation.qualificationMin'))
+  }), [t])
 
   const [formData, setFormData] = useState<VetFormData>({
     fullName: '',
@@ -139,9 +148,12 @@ export default function VetRegistration() {
       if (idFrontImage) form.append('idFrontImage', idFrontImage)
       if (idBackImage) form.append('idBackImage', idBackImage)
 
-      const res = await authAPI.registerMultipart(form)
+      const res = await authAPI.registerVetMultipart(form)
 
-      if (res.data?.token) {
+      if (res.data?.pendingApproval) {
+        toast.success(res.data.message || t('registration.messages.pending'))
+        navigate('/login')
+      } else if (res.data?.token) {
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('user', JSON.stringify(res.data.user))
         toast.success(t('registration.messages.success'))
@@ -159,7 +171,7 @@ export default function VetRegistration() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8" dir={i18n.dir()}>
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-blue-100">
           {/* Header */}
@@ -432,19 +444,15 @@ export default function VetRegistration() {
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200" dir="rtl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200" dir={i18n.dir()}>
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center scale-in-center">
             <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-50 mb-6 border-4 border-white shadow-sm">
               <CheckCircle2 className="h-10 w-10 text-[var(--color-vet-primary)]" />
             </div>
             
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              تأكيد إرسال الطلب
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('registration.confirm.title')}</h3>
             
-            <p className="text-gray-600 mb-8 leading-relaxed text-sm">
-              هل أنت متأكد من صحة جميع البيانات والمستندات المرفقة؟ بمجرد الإرسال، سيتطلب الأمر مراجعة الإدارة ولا يمكنك التعديل المباشر.
-            </p>
+            <p className="text-gray-600 mb-8 leading-relaxed text-sm">{t('registration.confirm.message')}</p>
             
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -453,7 +461,7 @@ export default function VetRegistration() {
                 disabled={submitting}
                 className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all text-sm"
               >
-                المراجعة والتعديل
+                {t('registration.confirm.review')}
               </button>
               <button
                 type="button"
@@ -464,10 +472,10 @@ export default function VetRegistration() {
                 {submitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    جاري الإرسال...
+                    {t('registration.confirm.submitting')}
                   </>
                 ) : (
-                  'نعم، تأكيد الإرسال'
+                  t('registration.confirm.submit')
                 )}
               </button>
             </div>

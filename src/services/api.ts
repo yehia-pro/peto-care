@@ -19,13 +19,6 @@ const api = axios.create({
   },
 })
 
-// Separate axios instance for refresh to avoid interceptor loops
-const refreshApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-})
-
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -40,48 +33,21 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors
+// Response interceptor — Supabase issues access tokens; no Express /auth/refresh in hard cutover.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const originalRequest = error.config
-    
-    // Skip token refresh if the request was to login or register
-    const isAuthRoute = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register')
-    
-    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthRoute) {
-      originalRequest._retry = true
-      // Attempt token refresh
-      return refreshApi.post('/auth/refresh')
-        .then((res) => {
-          const newToken = res.data?.token
-          if (newToken) {
-            localStorage.setItem('token', newToken)
-            api.defaults.headers.Authorization = `Bearer ${newToken}`
-            originalRequest.headers = originalRequest.headers || {}
-            originalRequest.headers.Authorization = `Bearer ${newToken}`
-            return api(originalRequest)
-          }
-          throw new Error('No token in refresh response')
-        })
-        .catch((e) => {
-          // Refresh failed -> force logout
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          window.location.href = '/login'
-          return Promise.reject(e)
-        })
-    }
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 // Auth API
 export const authAPI = {
   register: (userData: any) => api.post('/auth/register', userData),
-  registerMultipart: (formData: FormData) => api.post('/auth/register', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  registerMultipart: (formData: FormData) =>
+    api.post('/auth/register-store', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  registerVetMultipart: (formData: FormData) =>
+    api.post('/auth/register-vet', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   login: (credentials: any) => api.post('/auth/login', credentials),
-  refresh: () => refreshApi.post('/auth/refresh'),
+  refresh: () => api.post('/auth/refresh'),
   getProfile: () => api.get('/auth/profile'),
   updateProfile: (data: any) => api.put('/auth/profile', data),
   seedDemoVet: () => api.post('/auth/seed-demo-vet'),

@@ -875,6 +875,87 @@
         "uploadSyndicateMissing": "Please upload Syndicate ID and National ID",
         "uploadCommercialMissing": "Please upload Commercial Registration"
     },
+    "registration": {
+        "vet": {
+            "title": "Veterinarian Registration",
+            "subtitle": "Join the Peto Care veterinarian network",
+            "note": "After registration, your data will be reviewed and the team will contact you within 24-48 hours. Please upload the required documents clearly.",
+            "fullName": "Full Name",
+            "fullNamePlaceholder": "Example: Dr. Ahmed Mohamed Ali",
+            "syndicateCard": "Veterinary Syndicate Card (Required)",
+            "idFront": "National ID - Front (Required)",
+            "idBack": "National ID - Back (Required)",
+            "qualification": "Qualification and Specialization",
+            "qualificationPlaceholder": "Example: Bachelor of Veterinary Medicine - Cairo University, Specialization: Cats and Dogs Diseases",
+            "experience": "Years of Experience",
+            "experienceYearsPlaceholder": "Example: 5",
+            "terms": "I agree to the terms and conditions",
+            "uploadDocs": "Required Documents"
+        },
+        "petStore": {
+            "title": "Partner Store Registration",
+            "subtitle": "Join Peto Care as a partner store and grow your sales and customers.",
+            "step1": "Basic Information",
+            "step2": "Location and Contact",
+            "step3": "Additional Services",
+            "storeName": "Store Name",
+            "businessLicense": "Commercial Registration Number",
+            "storeType": "Business Type",
+            "types": {
+                "comprehensive": "Comprehensive Supplies Store (Food & Accessories)",
+                "clinic": "Veterinary Clinic and Medical Care",
+                "grooming": "Grooming and Beauty Care Salon",
+                "boarding": "Pet Boarding and Hosting",
+                "training": "Training and Behavior Center",
+                "pharmacy": "Veterinary Pharmacy and Medicine"
+            },
+            "licenseFile": "Commercial Registration Image (Required)",
+            "idFront": "National ID - Front (Required)",
+            "idBack": "National ID - Back (Required)",
+            "description": "Store Description (Optional)",
+            "descriptionPlaceholder": "Example: We provide top-quality pet food from global brands...",
+            "getCurrentLocation": "Use My Current Location",
+            "openingTime": "Opening Time",
+            "closingTime": "Closing Time",
+            "website": "Website (Optional)",
+            "whatsapp": "WhatsApp Number (Optional)",
+            "services": "Store Sections and Available Services",
+            "importantNoteBody": "After registration, your account will be under review. You cannot list products until admin approval."
+        },
+        "errors": {
+            "general": "Please fill all required fields correctly.",
+            "licenseRequired": "You must upload the commercial registration image to verify the store identity",
+            "identityRequired": "You must upload both front and back ID images to verify the store identity",
+            "fileRequired": "Please upload all required documents (syndicate card and ID images)",
+            "fileInvalid": "Invalid file. Please upload an image (JPG/PNG) or PDF up to 10 MB"
+        },
+        "validation": {
+            "fullNameMin": "Name must be at least 3 characters",
+            "emailInvalid": "Invalid email address",
+            "passwordMin": "Password must be at least 6 characters",
+            "phoneMin": "Invalid phone number",
+            "countryRequired": "Please select a governorate",
+            "specializationRequired": "Please select a specialization",
+            "experienceRequired": "Please enter years of experience",
+            "qualificationMin": "Please enter qualification details (at least 10 characters)",
+            "storeNameMin": "Store name must be at least 2 characters",
+            "businessLicenseMin": "Business license number is invalid",
+            "addressMin": "Address must be at least 5 characters",
+            "cityMin": "City must be at least 2 characters"
+        },
+        "confirm": {
+            "title": "Confirm Submission",
+            "message": "Are you sure all submitted data and attached documents are correct? Once submitted, admin review is required and direct editing will not be available.",
+            "review": "Review and Edit",
+            "submit": "Yes, Confirm Submission",
+            "submitting": "Submitting..."
+        },
+        "messages": {
+            "success": "Registration completed successfully! Your data will be reviewed and we will contact you soon.",
+            "pending": "Registration completed! Your account is under admin review. You will receive an email once approved.",
+            "registering": "Submitting..."
+        }
+    },
     "favorites": {
         "title": "My Favorites",
         "subtitle": "Products you liked",

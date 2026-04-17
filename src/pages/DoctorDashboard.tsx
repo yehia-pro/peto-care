@@ -1,24 +1,10 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
-import { Video, Upload, Eye, Heart, MessageCircle, Calendar, Users, TrendingUp, Award, Trash2, AlertCircle, Settings, X } from 'lucide-react'
+import { Calendar, Users, TrendingUp, Award, AlertCircle, Settings, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { authAPI } from '../services/api' // Import authAPI
-import { API_BASE_URL } from '@/services/api';
-
-const DoctorDashboard = lazy(() => import('./DoctorDashboard'))
-
-interface VideoData {
-  id: string
-  title: string
-  description: string
-  videoUrl: string
-  thumbnailUrl: string
-  views: number
-  likes: number
-  createdAt: string
-  isPublic: boolean
-}
+import { authAPI } from '../services/api'
+import { API_BASE_URL } from '@/services/api'
 
 interface Stats {
   totalAppointments: number
@@ -29,11 +15,10 @@ interface Stats {
   revenue: number
 }
 
-const DoctorDashboardWrapper: React.FC = () => {
+const DoctorDashboard: React.FC = () => {
   const { t } = useTranslation()
-  const { user } = useAuthStore() // Removed checkAuth as it does not exist on AuthState
+  const { user } = useAuthStore()
 
-  const [videos, setVideos] = useState<VideoData[]>([])
   const [stats, setStats] = useState<Stats>({
     totalAppointments: 0,
     upcomingAppointments: 0,
@@ -58,21 +43,8 @@ const DoctorDashboardWrapper: React.FC = () => {
     phone: ''
   })
 
-  const [showUploadModal, setShowUploadModal] = useState(false)
-  const [uploadForm, setUploadForm] = useState({
-    title: '',
-    description: '',
-    category: 'educational',
-    tags: '',
-    isPublic: true
-  })
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-
-
   useEffect(() => {
     fetchDashboardData()
-    fetchVideos()
     fetchProfile()
   }, [])
 
@@ -139,140 +111,6 @@ const DoctorDashboardWrapper: React.FC = () => {
     }
   }
 
-  const fetchVideos = async () => {
-    try {
-      const response = await fetch(API_BASE_URL + '/videos/my-videos', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setVideos(data.videos)
-      }
-    } catch (error) {
-      console.error('Error fetching videos:', error)
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 500 * 1024 * 1024) { // 500MB limit
-        toast.error(t('doctor.errors.videoSizeLarge'))
-        return
-      }
-
-      const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv']
-      if (!allowedTypes.includes(file.type)) {
-        toast.error(t('doctor.errors.videoTypeUnsupported'))
-        return
-      }
-
-      setUploadFile(file)
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!uploadFile || !uploadForm.title) {
-      toast.error(t('messages.fillAllFields'))
-      return
-    }
-
-    setUploading(true)
-
-    try {
-      // Upload video file
-      const formData = new FormData()
-      formData.append('video', uploadFile)
-      formData.append('title', uploadForm.title)
-      formData.append('description', uploadForm.description)
-      formData.append('category', uploadForm.category)
-      formData.append('tags', uploadForm.tags)
-      formData.append('isPublic', uploadForm.isPublic.toString())
-
-      const response = await fetch(API_BASE_URL + '/videos/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      })
-
-      if (response.ok) {
-        toast.success(t('doctor.upload.success'))
-        setShowUploadModal(false)
-        setUploadForm({
-          title: '',
-          description: '',
-          category: 'educational',
-          tags: '',
-          isPublic: true
-        })
-        setUploadFile(null)
-        fetchVideos()
-        fetchDashboardData()
-      } else {
-        const data = await response.json()
-        toast.error(data.message || t('doctor.upload.failed'))
-      }
-    } catch (error) {
-      toast.error(t('common.error'))
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleDeleteVideo = async (videoId: string) => {
-    if (!confirm(t('doctor.confirm.deleteVideo'))) return
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/videos/${videoId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-
-      if (response.ok) {
-        toast.success(t('doctor.delete.success'))
-        fetchVideos()
-        fetchDashboardData()
-      } else {
-        toast.error(t('doctor.delete.failed'))
-      }
-    } catch (error) {
-      toast.error('ط­ط¯ط« ط®ط·ط£ ظ…ط§')
-    }
-  }
-
-  const handleToggleVisibility = async (videoId: string, isPublic: boolean) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/videos/${videoId}/visibility`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ isPublic: !isPublic })
-      })
-
-      if (response.ok) {
-        toast.success(isPublic ? t('doctor.visibility.private') : t('doctor.visibility.public'))
-        fetchVideos()
-      }
-    } catch (error) {
-      toast.error(t('common.error'))
-    }
-  }
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num.toString()
-  }
-
   if (!user || user.role !== 'vet') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -280,12 +118,8 @@ const DoctorDashboardWrapper: React.FC = () => {
           <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            طھظ… ط§ظ„ط±ظپط¶
-          </h2>
-          <p className="text-gray-600">
-            ظ…ط·ظ„ظˆط¨ طµظ„ط§ط­ظٹط© ط·ط¨ظٹط¨ ط¨ظٹط·ط±ظٹ
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">غير مصرح</h2>
+          <p className="text-gray-600">هذه الصفحة مخصصة لحسابات الأطباء البيطريين</p>
         </div>
       </div>
     )
@@ -437,155 +271,6 @@ const DoctorDashboardWrapper: React.FC = () => {
           </div>
         </div>
 
-        {/* Upload Modal */}
-        {showUploadModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {t('doctor.modals.uploadVideo.title')}
-                </h3>
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  âœ•
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ط¹ظ†ظˆط§ظ† ط§ظ„ظپظٹط¯ظٹظˆ *
-                  </label>
-                  <input
-                    type="text"
-                    value={uploadForm.title}
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-primary)]"
-                    placeholder='ط£ط¯ط®ظ„ ط¹ظ†ظˆط§ظ† ط§ظ„ظپظٹط¯ظٹظˆ...'
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ظˆطµظپ ط§ظ„ظپظٹط¯ظٹظˆ
-                  </label>
-                  <textarea
-                    value={uploadForm.description}
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-primary)]"
-                    rows={3}
-                    placeholder='طµظپ ظپظٹط¯ظٹظˆظƒ ط¨ط§ظ„طھظپطµظٹظ„...'
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ط§ظ„ظپط¦ط©
-                    </label>
-                    <select
-                      value={uploadForm.category}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, category: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-primary)]"
-                    >
-                      <option value="educational">طھط¹ظ„ظٹظ…ظٹ</option>
-                      <option value="tutorial">ط¯ط±ظˆط³</option>
-                      <option value="review">ظ…ط±ط§ط¬ط¹ط©</option>
-                      <option value="caseStudy">ط¯ط±ط§ط³ط© ط­ط§ظ„ط©</option>
-                      <option value="procedure">ط¥ط¬ط±ط§ط،</option>
-                      <option value="other">ط£ط®ط±ظ‰</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ط§ظ„ظˆط³ظˆظ…
-                    </label>
-                    <input
-                      type="text"
-                      value={uploadForm.tags}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, tags: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-primary)]"
-                      placeholder='ط£ط¶ظپ ظˆط³ظˆظ… ظ…ظپطµظˆظ„ط© ط¨ظپظˆط§طµظ„...'
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ظ…ظ„ظپ ط§ظ„ظپظٹط¯ظٹظˆ *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[var(--color-vet-primary)] transition-colors">
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      id="video-upload"
-                      disabled={uploading}
-                    />
-                    <label htmlFor="video-upload" className="cursor-pointer">
-                      <div className="w-12 h-12 bg-blue-100 text-[var(--color-vet-primary)] rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Upload className="h-6 w-6" />
-                      </div>
-                      <p className="text-sm font-medium text-gray-900 mb-1">
-                        {uploadFile ? uploadFile.name : 'ط§ظ†ظ‚ط± ظ„ظ„ط±ظپط¹'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        ط§ظ„ط­ط¯ ط§ظ„ط£ظ‚طµظ‰ ظ„ط­ط¬ظ… ط§ظ„ظپظٹط¯ظٹظˆ: 500 ظ…ظٹط¬ط§ط¨ط§ظٹطھطŒ ط§ظ„طµظٹط؛ ط§ظ„ظ…ط¯ط¹ظˆظ…ط©: MP4طŒ MOVطŒ AVI
-                      </p>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isPublic"
-                    checked={uploadForm.isPublic}
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, isPublic: e.target.checked }))}
-                    className="h-4 w-4 text-[var(--color-vet-primary)] focus:ring-[var(--color-vet-primary)] border-gray-300 rounded"
-                  />
-                  <label htmlFor="isPublic" className="ml-2 text-sm text-gray-700">
-                    ط§ط¬ط¹ظ„ ط¹ط§ظ…
-                  </label>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    onClick={() => setShowUploadModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    disabled={uploading}
-                  >
-                    ط¥ظ„ط؛ط§ط،
-                  </button>
-                  <button
-                    onClick={handleUpload}
-                    className="px-4 py-2 bg-[var(--color-vet-primary)] text-white rounded-md hover:bg-[var(--color-vet-primary)] disabled:opacity-50 flex items-center"
-                    disabled={uploading || !uploadFile || !uploadForm.title}
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        ط¬ط§ط±ظٹ ط§ظ„ط±ظپط¹...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        ط±ظپط¹
-                      </>
-                    )}
-
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Settings Modal */}
         {showSettingsModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -735,10 +420,4 @@ const DoctorDashboardWrapper: React.FC = () => {
   )
 }
 
-export default function DoctorDashboardLazy() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DoctorDashboardWrapper />
-    </Suspense>
-  )
-}
+export default DoctorDashboard

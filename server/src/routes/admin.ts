@@ -1,321 +1,246 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { requireAuth } from '../middleware/auth'
-import MUserModel from '../models/User'
-import MPetStoreModel from '../models/PetStore'
+import { supabaseAdmin } from '../lib/supabase'
 import { sendEmail } from '../services/email'
-import { JsonDb } from '../utils/jsonDb'
+import { storesRepository } from '../repositories/storesRepository'
+import { vetsRepository } from '../repositories/vetsRepository'
 
 const router = Router()
 
-// Existing Overview
-router.get('/overview', requireAuth(['admin']), async (_req, res) => {
+const mapCouponRow = (row: any) => ({
+  _id: row.id,
+  id: row.id,
+  code: row.code,
+  discountType: row.discount_type,
+  discountValue: Number(row.discount_value),
+  expiresAt: row.expires_at,
+  minOrderAmount: Number(row.min_order_amount ?? 0),
+  maxUses: Number(row.max_uses ?? 0),
+  usedCount: Number(row.used_count ?? 0),
+  isActive: row.is_active !== false,
+  createdAt: row.created_at
+})
+
+router.get('/overview', requireAuth(['admin']), async (_req: Request, res: Response) => {
   try {
-    // Count from Mongo as well for accuracy if hybrid
-    const mongoUsers = await MUserModel.countDocuments({ role: 'user' })
-    const mongoVets = await MUserModel.countDocuments({ role: 'vet' })
-
-    const users = mongoUsers
-    const vets = mongoVets
-    const appointments = 0 // AppointmentModel.countDocuments()
-    const payments = 0
-
-    res.json({ users, vets, appointments, payments })
-  } catch (e) {
+    const { count: users } = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer')
+    const { count: vets } = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'vet')
+    const { count: appointments } = await supabaseAdmin.from('appointments').select('*', { count: 'exact', head: true })
+    res.json({
+      users: users ?? 0,
+      vets: vets ?? 0,
+      appointments: appointments ?? 0,
+      payments: 0
+    })
+  } catch {
     res.json({ users: 0, vets: 0, appointments: 0, payments: 0 })
   }
 })
 
-// --- NEW APPROVAL ROUTES ---
-
-// Get Pending Approvals
-router.get('/pending', requireAuth(['admin']), async (_req, res) => {
-  try {
-    const pendingUsers = await MUserModel.find({
-      isApproved: false,
-      role: { $in: ['vet', 'petstore'] }
-    }).select('-passwordHash') // Exclude password
-      .sort({ createdAt: -1 });
-
-    res.json(pendingUsers);
-  } catch (error) {
-    console.error('Error fetching pending users:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to fetch pending requests' });
+async function profileToPendingPayload(profile: any, email: string) {
+  const m = profile.metadata || {}
+  return {
+    _id: profile.id,
+    fullName: profile.full_name || '',
+    email,
+    role: profile.role === 'store_owner' ? 'petstore' : 'vet',
+    phone: profile.phone || '',
+    syndicateCardImageUrl: m.syndicateCardImageUrl || m.syndicate_card_image_url,
+    idFrontUrl: m.idFrontUrl || m.id_front_url,
+    idBackUrl: m.idBackUrl || m.id_back_url,
+    commercialRegImageUrl: m.commercialRegImageUrl || m.commercial_reg_image_url,
+    createdAt: profile.created_at
   }
-});
+}
 
-// Approve User
-router.put('/approve/:id', requireAuth(['admin']), async (req, res) => {
+router.get('/pending', requireAuth(['admin']), async (_req: Request, res: Response) => {
   try {
-    const user = await MUserModel.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: 'not_found', message: 'User not found' });
+    const { data: profiles, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, role, full_name, phone, metadata, created_at')
+      .in('role', ['vet', 'store_owner'])
+      .order('created_at', { ascending: false })
 
-    user.isApproved = true;
-    await user.save();
+    if (error) throw error
 
-    // If petstore, ensure a PetStore document exists (safety net in case it failed at registration)
-    if (user.role === 'petstore') {
+    const pending = (profiles || []).filter((p: any) => (p.metadata || {}).approval_status === 'pending')
+    const out: any[] = []
+
+    for (const p of pending) {
+      const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.getUserById(p.id)
+      if (authErr || !authData?.user?.email) continue
+      out.push(await profileToPendingPayload(p, authData.user.email))
+    }
+
+    res.json(out)
+  } catch (e) {
+    console.error('Error fetching pending users:', e)
+    res.status(500).json({ error: 'server_error', message: 'Failed to fetch pending requests' })
+  }
+})
+
+router.put('/approve/:id', requireAuth(['admin']), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const { data: prof, error } = await supabaseAdmin.from('profiles').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    if (!prof) return res.status(404).json({ error: 'not_found', message: 'User not found' })
+
+    const meta = { ...(prof.metadata as object), approval_status: 'approved' as const }
+    const { error: upErr } = await supabaseAdmin
+      .from('profiles')
+      .update({ metadata: meta, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (upErr) throw upErr
+
+    if (prof.role === 'store_owner') {
       try {
-        const existing = await MPetStoreModel.findOne({ userId: user._id.toString() })
-        if (!existing) {
-          let contact: any = {}
-          try { contact = typeof user.contact === 'string' ? JSON.parse(user.contact) : (user.contact || {}) } catch (_) {}
-          const placeholder = 'https://placehold.co/600x400'
-          await MPetStoreModel.create({
-            userId: user._id.toString(),
-            storeName: (user as any).storeName || user.fullName,
-            storeType: contact.storeType || 'comprehensive',
-            description: contact.description || '',
-            phone: (user as any).phone || contact.phone || '',
-            whatsapp: contact.whatsapp || '',
-            openingTime: contact.openingTime || '09:00',
-            closingTime: contact.closingTime || '21:00',
-            services: Array.isArray(contact.services) ? contact.services : [],
-            brands: Array.isArray(contact.brands) ? contact.brands : [],
-            city: contact.city || '',
-            address: contact.address || '',
-            commercialRegImageUrl: (user as any).commercialRegImageUrl || placeholder,
-            rating: 0
-          })
-          console.log(`[Approve] Auto-created PetStore record for user ${user._id}`)
-        }
-      } catch (storeErr) {
-        console.error('[Approve] Failed to ensure PetStore record:', storeErr)
+        await storesRepository.getOrCreateForOwner(id)
+      } catch (e) {
+        console.error('[Approve] ensure store row:', e)
       }
     }
 
-    // Send approval email to the user
-    try {
-      const roleLabel = user.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة';
-      const subject = '🎉 تم قبول طلبك والترحيب بك في منصتنا!';
-      const html = `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9fafb; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
-          <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 32px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Peto Care</h1>
-            <p style="color: #bfdbfe; margin: 8px 0 0 0; font-size: 14px;">منصة الرعاية البيطرية المتكاملة</p>
-          </div>
-
-          <div style="padding: 32px; background: white;">
-            <div style="text-align: center; margin-bottom: 24px;">
-              <div style="background: #dcfce7; width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 32px;">✅</div>
-            </div>
-
-            <h2 style="color: #111827; margin: 0 0 8px 0;">مرحباً ${user.fullName}!</h2>
-            <p style="color: #6b7280; margin: 0 0 24px 0; font-size: 15px; line-height: 1.6;">
-              يسعدنا إخبارك بأن طلب تسجيلك كـ <strong style="color: #2563eb;">${roleLabel}</strong> قد تمت الموافقة عليه بنجاح.
-            </p>
-
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-              <p style="color: #166534; margin: 0; font-size: 14px;">
-                ✨ يمكنك الآن الدخول إلى حسابك والاستفادة من جميع مميزات المنصة كاملةً.
-              </p>
-            </div>
-
-            <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${req.headers.origin || process.env.APP_URL || 'https://yehia-pro-peto-care.hf.space'}/login"
-                 style="display: inline-block; padding: 14px 32px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                🚀 تسجيل الدخول الآن
-              </a>
-            </div>
-
-            <p style="color: #4b5563; font-size: 14px; text-align: center; margin: 32px 0 0 0; line-height: 1.6;">
-              مع تحيات،<br>
-              <strong>فريق دعم Peto Care</strong>
-            </p>
-            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 12px 0 0 0;">
-              إذا كان لديك أي استفسار، تواصل معنا على هذا البريد الإلكتروني.
-            </p>
-          </div>
-
-          <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Peto Care. جميع الحقوق محفوظة.</p>
-          </div>
-        </div>`;
-      await sendEmail(user.email, subject, html);
-    } catch (mailError) {
-      console.error('Failed to send approval email:', mailError);
-    }
-
-    res.json({ success: true, message: 'User approved successfully' });
-  } catch (error) {
-    console.error('Error approving user:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to approve user' });
-  }
-});
-
-// Reject User
-router.delete('/reject/:id', requireAuth(['admin']), async (req, res) => {
-  try {
-    const user = await MUserModel.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: 'not_found', message: 'User not found' });
-
-    // Send rejection email BEFORE deleting the record
-    try {
-      const roleLabel = user.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة';
-      const subject = 'بخصوص طلب تسجيلك في منصة Peto Care';
-      const html = `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9fafb; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
-          <div style="background: linear-gradient(135deg, #374151, #1f2937); padding: 32px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🐾 Peto Care</h1>
-            <p style="color: #9ca3af; margin: 8px 0 0 0; font-size: 14px;">منصة الرعاية البيطرية المتكاملة</p>
-          </div>
-
-          <div style="padding: 32px; background: white;">
-            <div style="text-align: center; margin-bottom: 24px;">
-              <div style="background: #fef2f2; width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 32px;">❌</div>
-            </div>
-
-            <h2 style="color: #111827; margin: 0 0 8px 0;">مرحباً ${user.fullName}،</h2>
-            <p style="color: #6b7280; margin: 0 0 24px 0; font-size: 15px; line-height: 1.6;">
-              نأسف لإبلاغك بأنه تم رفض طلب تسجيلك كـ <strong>${roleLabel}</strong> في الوقت الحالي.
-            </p>
-
-            <div style="background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-              <p style="color: #92400e; margin: 0; font-size: 14px; font-weight: bold;">الأسباب المحتملة للرفض:</p>
-              <ul style="color: #78350f; font-size: 13px; margin: 8px 0 0 0; padding-right: 16px; line-height: 1.8;">
-                <li>البيانات المقدمة غير مكتملة أو غير واضحة</li>
-                <li>المستندات المرفقة غير مطابقة للمتطلبات</li>
-                <li>عدم استيفاء شروط التسجيل في المنصة</li>
-              </ul>
-            </div>
-
-            <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
-              يمكنك إعادة التقديم بعد التأكد من اكتمال بياناتك ووضوح المستندات المطلوبة.
-            </p>
-
-            <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
-              مع تحيات،<br>
-              <strong>فريق دعم Peto Care</strong>
-            </p>
-            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 16px 0 0 0;">
-              إذا كنت تعتقد أن هناك خطأ، يرجى التواصل معنا عبر الرد على هذا البريد.
-            </p>
-          </div>
-
-          <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 Peto Care. جميع الحقوق محفوظة.</p>
-          </div>
-        </div>`;
-      await sendEmail(user.email, subject, html);
-    } catch (mailError) {
-      console.error('Failed to send rejection email:', mailError);
-    }
-
-    await MUserModel.findByIdAndDelete(req.params.id);
-
-    res.json({ success: true, message: 'User rejected and removed' });
-  } catch (error) {
-    console.error('Error rejecting user:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to reject user' });
-  }
-});
-
-// --- END NEW ROUTES ---
-
-// --- STORES MANAGEMENT ROUTES ---
-
-// Get all petstore users with their PetStore document status
-router.get('/stores', requireAuth(['admin']), async (_req, res) => {
-  try {
-    // Get all petstore users
-    const mongoPetstoreUsers = await MUserModel.find({ role: 'petstore' })
-      .select('-passwordHash')
-      .sort({ createdAt: -1 })
-      .lean() as any[]
-    
-    // Fallback to memory json db (trial users missing from mongo)
-    const memUsersList: any = JsonDb.read('users.json', [])
-    const memPetstoreUsers = Array.isArray(memUsersList) ? memUsersList.filter(u => u.role === 'petstore') : []
-    
-    // Combine and deduplicate by email or id
-    const seenIds = new Set<string>()
-    const petstoreUsers = [...mongoPetstoreUsers, ...memPetstoreUsers].filter(u => {
-      const idStr = (u._id || u.id)?.toString()
-      if (idStr && seenIds.has(idStr)) return false
-      if (idStr) seenIds.add(idStr)
-      return true
-    })
-
-    // Get all PetStore documents
-    const mongoPetStoreDocs = await MPetStoreModel.find({}).lean() as any[]
-    const memStoresList: any = JsonDb.read('stores.json', [])
-    const petStoreDocs = [...mongoPetStoreDocs, ...(Array.isArray(memStoresList) ? memStoresList : [])]
-
-    // Map userId → PetStore doc
-    const storeByUserId: Record<string, any> = {}
-    for (const doc of petStoreDocs) {
-      if (doc.userId) {
-        storeByUserId[doc.userId.toString()] = doc
+    if (prof.role === 'vet') {
+      try {
+        const { data: v } = await supabaseAdmin.from('vets').select('id').eq('user_id', id).maybeSingle()
+        if (v?.id) await vetsRepository.setVerified(v.id, true)
+      } catch (e) {
+        console.error('[Approve] vet verify:', e)
       }
     }
 
-    // Merge: each user + their store status
-    const result = petstoreUsers.map(user => {
-      const uId = (user._id || user.id)?.toString() || 'unknown'
+    const { data: authData } = await supabaseAdmin.auth.admin.getUserById(id)
+    const email = authData?.user?.email
+    if (email) {
+      const roleLabel = prof.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة'
+      const subject = '🎉 تم قبول طلبك والترحيب بك في منصتنا!'
+      const html = `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <p>مرحباً ${prof.full_name || ''}،</p>
+          <p>تمت الموافقة على تسجيلك كـ <strong>${roleLabel}</strong>. يمكنك تسجيل الدخول الآن.</p>
+          <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login">تسجيل الدخول</a></p>
+        </div>`
+      try {
+        await sendEmail(email, subject, html)
+      } catch (mailError) {
+        console.error('Failed to send approval email:', mailError)
+      }
+    }
+
+    res.json({ success: true, message: 'User approved successfully' })
+  } catch (error) {
+    console.error('Error approving user:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to approve user' })
+  }
+})
+
+router.delete('/reject/:id', requireAuth(['admin']), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const { data: prof } = await supabaseAdmin.from('profiles').select('*').eq('id', id).maybeSingle()
+    const { data: authData } = await supabaseAdmin.auth.admin.getUserById(id)
+    const email = authData?.user?.email
+    const fullName = prof?.full_name || ''
+
+    if (email) {
+      const roleLabel = prof?.role === 'vet' ? 'طبيب بيطري' : 'متجر حيوانات أليفة'
+      const subject = 'بخصوص طلب تسجيلك في منصة Peto Care'
+      const html = `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <p>مرحباً ${fullName}،</p>
+          <p>نأسف لإبلاغك بأنه تم رفض طلب تسجيلك كـ <strong>${roleLabel}</strong> في الوقت الحالي.</p>
+          <p>يمكنك التواصل مع الدعم لمزيد من التفاصيل.</p>
+        </div>`
+      try {
+        await sendEmail(email, subject, html)
+      } catch (mailError) {
+        console.error('Failed to send rejection email:', mailError)
+      }
+    }
+
+    const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(id)
+    if (delErr) return res.status(400).json({ error: 'delete_failed', message: delErr.message })
+
+    res.json({ success: true, message: 'User rejected and removed' })
+  } catch (error) {
+    console.error('Error rejecting user:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to reject user' })
+  }
+})
+
+router.get('/stores', requireAuth(['admin']), async (_req: Request, res: Response) => {
+  try {
+    const { data: profiles, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, phone, metadata, created_at, role')
+      .eq('role', 'store_owner')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    const { data: storeRows } = await supabaseAdmin.from('stores').select('id, owner_user_id, name, metadata, created_at')
+
+    const byOwner = new Map<string, any>()
+    for (const s of storeRows || []) {
+      byOwner.set(s.owner_user_id, s)
+    }
+
+    const stores = (profiles || []).map((p: any) => {
+      const m = p.metadata || {}
+      const pending = m.approval_status === 'pending'
+      const row = byOwner.get(p.id)
       return {
-        userId: uId,
-        fullName: user.fullName || 'بدون اسم',
-        email: user.email || '',
-        phone: user.phone || '',
-        isApproved: user.isApproved,
-        createdAt: user.createdAt,
-        hasStoreRecord: !!storeByUserId[uId],
-        store: storeByUserId[uId] || null
+        userId: p.id,
+        fullName: p.full_name || 'بدون اسم',
+        email: '',
+        phone: p.phone || '',
+        isApproved: !pending,
+        createdAt: p.created_at,
+        hasStoreRecord: !!row,
+        store: row
+          ? {
+              storeName: row.name,
+              storeType: row.metadata?.storeType,
+              city: row.metadata?.city,
+              address: row.metadata?.address,
+              phone: row.phone,
+              openingTime: row.metadata?.openingTime,
+              closingTime: row.metadata?.closingTime,
+              rating: row.metadata?.rating,
+              createdAt: row.created_at
+            }
+          : null
       }
     })
 
-    res.json({ stores: result })
+    for (const s of stores) {
+      const { data: authData } = await supabaseAdmin.auth.admin.getUserById(s.userId)
+      if (authData?.user?.email) s.email = authData.user.email
+    }
+
+    res.json({ stores })
   } catch (error) {
     console.error('Error fetching admin stores:', error)
     res.status(500).json({ error: 'server_error', message: 'Failed to fetch stores' })
   }
 })
 
-// Fix / create missing PetStore record for an approved petstore user
-router.post('/stores/:userId/fix-store', requireAuth(['admin']), async (req, res) => {
+router.post('/stores/:userId/fix-store', requireAuth(['admin']), async (req: Request, res: Response) => {
   try {
     const { userId } = req.params
+    const { data: prof } = await supabaseAdmin.from('profiles').select('id, role').eq('id', userId).maybeSingle()
+    if (!prof) return res.status(404).json({ error: 'not_found', message: 'User not found' })
+    if (prof.role !== 'store_owner') {
+      return res.status(400).json({ error: 'wrong_role', message: 'User is not a petstore' })
+    }
 
-    const user = await MUserModel.findById(userId).lean() as any
-    if (!user) return res.status(404).json({ error: 'not_found', message: 'User not found' })
-    if (user.role !== 'petstore') return res.status(400).json({ error: 'wrong_role', message: 'User is not a petstore' })
-
-    // Check if already exists
-    const existing = await MPetStoreModel.findOne({ userId })
+    const existing = await storesRepository.getByOwnerUserId(userId)
     if (existing) {
       return res.json({ success: true, message: 'Store record already exists', store: existing, alreadyExisted: true })
     }
 
-    // Parse contact field
-    let contact: any = {}
-    try { contact = typeof user.contact === 'string' ? JSON.parse(user.contact) : (user.contact || {}) } catch (_) {}
-
-    const placeholder = 'https://placehold.co/600x400'
-    const created = await MPetStoreModel.create({
-      userId,
-      storeName: user.storeName || contact.storeName || user.fullName,
-      storeType: contact.storeType || user.storeType || 'comprehensive',
-      description: contact.description || user.description || '',
-      phone: user.phone || contact.phone || '',
-      whatsapp: contact.whatsapp || user.whatsapp || '',
-      openingTime: contact.openingTime || '09:00',
-      closingTime: contact.closingTime || '21:00',
-      services: Array.isArray(contact.services)
-        ? contact.services
-        : typeof contact.services === 'string' && contact.services
-          ? contact.services.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : [],
-      brands: Array.isArray(contact.brands)
-        ? contact.brands
-        : typeof contact.brands === 'string' && contact.brands
-          ? contact.brands.split(',').map((b: string) => b.trim()).filter(Boolean)
-          : [],
-      city: contact.city || user.city || '',
-      address: contact.address || user.address || '',
-      commercialRegImageUrl: user.commercialRegImageUrl || placeholder,
-      rating: 0
-    })
-
-    console.log(`[Admin] Fixed PetStore for user ${userId}`)
+    const created = await storesRepository.getOrCreateForOwner(userId)
     res.json({ success: true, message: 'Store record created successfully', store: created })
   } catch (error) {
     console.error('Error fixing store:', error)
@@ -323,23 +248,11 @@ router.post('/stores/:userId/fix-store', requireAuth(['admin']), async (req, res
   }
 })
 
-// Delete a petstore user entirely (User + PetStore record)
-router.delete('/stores/:userId', requireAuth(['admin']), async (req, res) => {
+router.delete('/stores/:userId', requireAuth(['admin']), async (req: Request, res: Response) => {
   try {
     const { userId } = req.params
-
-    // 1. Delete from mongo
-    try { await MUserModel.findByIdAndDelete(userId) } catch(e){}
-    try { await MPetStoreModel.findOneAndDelete({ userId }) } catch (e){}
-
-    // 2. Delete from JsonDb
-    const allUsers = JsonDb.read('users.json', [])
-    JsonDb.write('users.json', allUsers.filter((u: any) => (u._id || u.id)?.toString() !== userId))
-
-    const allStores = JsonDb.read('stores.json', [])
-    JsonDb.write('stores.json', allStores.filter((s: any) => s.userId !== userId))
-
-    console.log(`[Admin] Deleted PetStore user ${userId} and their records entirely.`)
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    if (error) return res.status(400).json({ error: 'delete_failed', message: error.message })
     res.json({ success: true, message: 'PetStore removed successfully' })
   } catch (error) {
     console.error('Error deleting store:', error)
@@ -347,75 +260,83 @@ router.delete('/stores/:userId', requireAuth(['admin']), async (req, res) => {
   }
 })
 
-import Coupon from '../models/Coupon';
-
-// --- COUPON MANAGEMENT ROUTES ---
-
-// Get all coupons
-router.get('/coupons', requireAuth(['admin']), async (_req, res) => {
+router.get('/coupons', requireAuth(['admin']), async (_req: Request, res: Response) => {
   try {
-    const coupons = await Coupon.find().sort({ createdAt: -1 });
-    res.json(coupons);
+    const { data, error } = await supabaseAdmin.from('admin_coupons').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    res.json({ coupons: (data || []).map(mapCouponRow) })
   } catch (error) {
-    console.error('Error fetching coupons:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to fetch coupons' });
+    console.error('Error fetching coupons:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to fetch coupons' })
   }
-});
+})
 
-// Create new coupon
-router.post('/coupons', requireAuth(['admin']), async (req, res) => {
+router.post('/coupons', requireAuth(['admin']), async (req: Request, res: Response) => {
   try {
-    const { code, discountType, discountValue, expiresAt, minOrderAmount, maxUses } = req.body;
-    
-    // Check if code already exists
-    const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
-    if (existingCoupon) {
-      return res.status(400).json({ error: 'duplicate_code', message: 'Coupon code already exists' });
+    const { code, discountType, discountValue, expiresAt, minOrderAmount, maxUses } = req.body
+    if (!code || !['percentage', 'fixed'].includes(discountType)) {
+      return res.status(400).json({ error: 'validation_error', message: 'بيانات غير صالحة' })
     }
 
-    const coupon = new Coupon({
-      code: code.toUpperCase(),
-      discountType,
-      discountValue,
-      expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-      minOrderAmount: minOrderAmount || 0,
-      maxUses: maxUses || 0,
-      createdBy: (req as any).user.id,
-      isActive: true
-    });
+    const upper = String(code).toUpperCase()
+    const { data: dup } = await supabaseAdmin.from('admin_coupons').select('id').eq('code', upper).maybeSingle()
+    if (dup) return res.status(400).json({ error: 'duplicate_code', message: 'Coupon code already exists' })
 
-    await coupon.save();
-    res.status(201).json(coupon);
+    const adminId = (req as any).user.id
+    const { data, error } = await supabaseAdmin
+      .from('admin_coupons')
+      .insert({
+        code: upper,
+        discount_type: discountType,
+        discount_value: Number(discountValue),
+        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        min_order_amount: minOrderAmount ?? 0,
+        max_uses: maxUses ?? 0,
+        used_count: 0,
+        is_active: true,
+        created_by: adminId
+      })
+      .select('*')
+      .single()
+
+    if (error) throw error
+    res.status(201).json(mapCouponRow(data))
   } catch (error) {
-    console.error('Error creating coupon:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to create coupon' });
+    console.error('Error creating coupon:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to create coupon' })
   }
-});
+})
 
-// Toggle or update coupon active status
-router.patch('/coupons/:id/toggle', requireAuth(['admin']), async (req, res) => {
+router.patch('/coupons/:id/toggle', requireAuth(['admin']), async (req: Request, res: Response) => {
   try {
-    const coupon = await Coupon.findById(req.params.id);
-    if (!coupon) return res.status(404).json({ error: 'not_found', message: 'Coupon not found' });
+    const { data: row, error: fErr } = await supabaseAdmin.from('admin_coupons').select('*').eq('id', req.params.id).maybeSingle()
+    if (fErr) throw fErr
+    if (!row) return res.status(404).json({ error: 'not_found', message: 'Coupon not found' })
 
-    coupon.isActive = !coupon.isActive;
-    await coupon.save();
-    res.json(coupon);
+    const { data, error } = await supabaseAdmin
+      .from('admin_coupons')
+      .update({ is_active: !row.is_active, updated_at: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select('*')
+      .single()
+
+    if (error) throw error
+    res.json(mapCouponRow(data))
   } catch (error) {
-    console.error('Error toggling coupon:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to toggle coupon' });
+    console.error('Error toggling coupon:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to toggle coupon' })
   }
-});
+})
 
-// Delete coupon
-router.delete('/coupons/:id', requireAuth(['admin']), async (req, res) => {
+router.delete('/coupons/:id', requireAuth(['admin']), async (req: Request, res: Response) => {
   try {
-    await Coupon.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Coupon deleted' });
+    const { error } = await supabaseAdmin.from('admin_coupons').delete().eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true, message: 'Coupon deleted' })
   } catch (error) {
-    console.error('Error deleting coupon:', error);
-    res.status(500).json({ error: 'server_error', message: 'Failed to delete coupon' });
+    console.error('Error deleting coupon:', error)
+    res.status(500).json({ error: 'server_error', message: 'Failed to delete coupon' })
   }
-});
+})
 
 export default router

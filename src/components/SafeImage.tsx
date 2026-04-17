@@ -43,7 +43,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
 
         // Handle server-side relative paths like /uploads/...
         if (processedUrl.startsWith('/uploads')) {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:4000/api'
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:7860/api'
             const baseUrl = apiUrl.replace(/\/api\/?$/, '')
             return `${baseUrl}${processedUrl}`
         }

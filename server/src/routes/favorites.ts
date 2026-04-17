@@ -1,10 +1,6 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth';
-import User from '../models/User';
-import PetStore from '../models/PetStore';
-import Service from '../models/Service';
-import Disease from '../models/Disease';
-import mongoose from 'mongoose';
+import { supabaseAdmin } from '../lib/supabase';
 
 const router = express.Router();
 
@@ -18,107 +14,98 @@ router.post('/toggle', requireAuth(), async (req, res) => {
     }
 
     const userId = (req as any).user?.id || (req as any).user?.userId;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+
+    // Check if favorite exists
+    const { data: existing, error: checkError } = await supabaseAdmin
+      .from('favorites')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('item_id', itemId)
+      .eq('item_type', itemType)
+      .maybeSingle();
+
+    if (checkError) {
+      return res.status(500).json({ error: 'check_failed', message: checkError.message });
     }
 
-    // Initialize if undefined
-    if (!user.favorites) {
-      user.favorites = [];
-    }
+    if (existing) {
+      // Remove favorite
+      const { error: deleteError } = await supabaseAdmin
+        .from('favorites')
+        .delete()
+        .eq('id', existing.id);
 
-    // Check if it already exists
-    const existingIndex = user.favorites.findIndex(f => f.itemId.toString() === itemId.toString());
-
-    if (existingIndex >= 0) {
-      // Remove it
-      user.favorites.splice(existingIndex, 1);
+      if (deleteError) {
+        return res.status(500).json({ error: 'delete_failed', message: deleteError.message });
+      }
     } else {
-      // Add it
-      user.favorites.push({ itemId, itemType });
+      // Add favorite
+      const { error: insertError } = await supabaseAdmin
+        .from('favorites')
+        .insert({ user_id: userId, item_id: itemId, item_type: itemType });
+
+      if (insertError) {
+        return res.status(500).json({ error: 'insert_failed', message: insertError.message });
+      }
     }
 
-    await user.save();
+    // Get updated favorites
+    const { data: favorites, error: fetchError } = await supabaseAdmin
+      .from('favorites')
+      .select('*')
+      .eq('user_id', userId);
 
-    res.json({ success: true, favorites: user.favorites });
+    if (fetchError) {
+      return res.status(500).json({ error: 'fetch_failed', message: fetchError.message });
+    }
+
+    res.json({ success: true, favorites: favorites || [] });
   } catch (error) {
     console.error('Toggle favorite error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get My Favorites (Unpopulated)
+// Get My Favorites
 router.get('/', requireAuth(), async (req, res) => {
   try {
     const userId = (req as any).user?.id || (req as any).user?.userId;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+
+    const { data: favorites, error } = await supabaseAdmin
+      .from('favorites')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) {
+      return res.status(500).json({ error: 'fetch_failed', message: error.message });
     }
 
-    res.json({ favorites: user.favorites || [] });
+    res.json({ favorites: favorites || [] });
   } catch (error) {
     console.error('Get favorites error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get My Favorites (Populated Details)
+// Get My Favorites with Details
 router.get('/details', requireAuth(), async (req, res) => {
   try {
     const userId = (req as any).user?.id || (req as any).user?.userId;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+
+    // Get favorites
+    const { data: favorites, error: favError } = await supabaseAdmin
+      .from('favorites')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (favError) {
+      return res.status(500).json({ error: 'fetch_failed', message: favError.message });
     }
 
-    const favorites = user.favorites || [];
-    
-    // Filter only valid ObjectIds to prevent Mongoose CastError from previous mock data
-    const validProductIds = favorites
-      .filter(f => f.itemType === 'product' && mongoose.Types.ObjectId.isValid(f.itemId))
-      .map(f => f.itemId);
-      
-    const validServiceIds = favorites
-      .filter(f => f.itemType === 'service' && mongoose.Types.ObjectId.isValid(f.itemId))
-      .map(f => f.itemId);
-      
-    // const diseaseIds = ...
-
-    let populatedProducts: any[] = [];
-    if (validProductIds.length > 0) {
-      const stores = await PetStore.find({ "products._id": { $in: validProductIds } });
-      stores.forEach(store => {
-         const matchingProducts = store.products?.filter(p => validProductIds.includes(p._id?.toString() || '')) || [];
-         matchingProducts.forEach(p => {
-            populatedProducts.push({
-               id: p._id,
-               name: p.name,
-               description: p.description,
-               priceEGP: p.price,
-               category: p.category,
-               imageUrl: p.imageUrl,
-               inStock: p.inStock,
-               storeId: store._id,
-               storeName: store.storeName,
-               itemType: 'product'
-            });
-         });
-      });
-    }
-
-    let populatedServices: any[] = [];
-    if (validServiceIds.length > 0) {
-      const services = await Service.find({ _id: { $in: validServiceIds } });
-      populatedServices = services.map(s => ({ ...s.toObject(), id: s._id, itemType: 'service' }));
-    }
-
-    // You can populate diseases the same way if needed in the future
-
-    res.json({ 
-      products: populatedProducts,
-      services: populatedServices
+    // For now, return empty arrays - can be enhanced to join with products/services tables
+    res.json({
+      products: [],
+      services: []
     });
   } catch (error) {
     console.error('Get favorites details error:', error);

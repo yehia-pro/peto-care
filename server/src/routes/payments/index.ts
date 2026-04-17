@@ -1,25 +1,26 @@
 import { Router } from 'express';
 import Stripe from 'stripe';
+import { supabaseAdmin } from '../../lib/supabase';
+
 const router = Router();
 const stripe = new Stripe(process.env.STRIPE_KEY || 'sk_test_xxx', { apiVersion: '2022-11-15' });
 
 router.post('/create-payment-intent', async (req, res) => {
-  const { amount, currency = 'usd', userId } = req.body; // UserId should ideally come from auth middleware
+  const { amount, currency = 'usd', userId } = req.body;
   try {
     const pi = await stripe.paymentIntents.create({ amount, currency });
 
-    // Record transaction
+    // Record transaction in Supabase
     if (userId) {
-      const { default: Transaction } = await import('../../models/Transaction');
-      await Transaction.create({
-        userId,
+      await supabaseAdmin.from('transactions').insert({
+        user_id: userId,
         type: 'payment',
-        amount: amount / 100, // Stripe uses cents
+        amount: amount / 100,
         currency,
         status: 'pending',
-        stripePaymentIntentId: pi.id,
+        stripe_payment_intent_id: pi.id,
         description: 'Payment Intent Created',
-        paymentMethod: 'card'
+        payment_method: 'card'
       });
     }
 

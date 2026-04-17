@@ -3,7 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { requireAuth } from '../middleware/auth'
-import { FileModel } from '../models/File'
+import { supabaseAdmin } from '../lib/supabase'
 
 const router = Router()
 
@@ -44,13 +44,20 @@ router.post('/documents', requireAuth(['user', 'vet', 'admin']), uploadDocMw.sin
 
     if (!userId || !file) return res.status(400).json({ error: 'invalid' })
 
-    const newFile = await FileModel.create({
-      userId,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: file.path
-    })
+    // Save file metadata to Supabase
+    const { data: newFile, error } = await supabaseAdmin
+      .from('files')
+      .insert({
+        user_id: userId,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: file.path
+      })
+      .select()
+      .single()
+
+    if (error) return res.status(500).json({ error: 'save_failed', message: error.message })
 
     res.json({ file: newFile, url: `/uploads/${file.filename}` })
   } catch (error) {
@@ -82,9 +89,6 @@ router.post('/images', requireAuth(['user', 'vet', 'petstore', 'admin']), (req, 
     })
   }
 
-  // Note: For simple image uploads (like profile pics), we might not be saving to DB yet, or just returning path.
-  // If we want to track all uploads in DB, we should save here too. 
-  // For consistency with original code, we just return the path for images that might be used elsewhere immediately.
   res.json({ filename: file.filename, path: file.path, url: `/uploads/${file.filename}` })
 })
 
@@ -95,13 +99,20 @@ router.post('/videos', requireAuth(['vet']), uploadVideoMw.single('file'), async
 
     if (!file) return res.status(400).json({ error: 'invalid' })
 
-    const newFile = await FileModel.create({
-      userId,
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: file.path
-    })
+    // Save file metadata to Supabase
+    const { data: newFile, error } = await supabaseAdmin
+      .from('files')
+      .insert({
+        user_id: userId,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: file.path
+      })
+      .select()
+      .single()
+
+    if (error) return res.status(500).json({ error: 'save_failed', message: error.message })
 
     res.json({ filename: file.filename, path: file.path, url: `/uploads/${file.filename}`, file: newFile })
   } catch (error) {
@@ -114,8 +125,15 @@ router.post('/videos', requireAuth(['vet']), uploadVideoMw.single('file'), async
 router.get('/my-files', requireAuth(['user', 'vet', 'petstore', 'admin']), async (req, res) => {
   try {
     const userId = (req as any).user.id
-    const files = await FileModel.find({ userId }).sort({ createdAt: -1 })
-    res.json({ files })
+
+    const { data: files, error } = await supabaseAdmin
+      .from('files')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) return res.status(500).json({ error: 'fetch_failed', message: error.message })
+    res.json({ files: files || [] })
   } catch (error) {
     console.error('Error fetching files:', error)
     res.status(500).json({ error: 'failed_to_fetch_files' })

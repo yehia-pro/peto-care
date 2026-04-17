@@ -6,70 +6,69 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import { connectMongo } from './config/db';
 import { Server as IOServer } from 'socket.io';
 // Health route will be imported lazily to avoid any potential cycles
 
-// Import routes dynamically to prevent circular dependencies
 const importRoutes = async () => {
-  // Serial imports to identify blocker
-  console.log('Loading auth...'); const { default: authRoutes } = await import('./routes/auth');
-  console.log('Loading payments...'); const { default: paymentsRoutes } = await import('./routes/payments');
-  console.log('Loading videos...'); const { default: videosRoutes } = await import('./routes/videos');
-  console.log('Loading petstores...'); const { default: petstoresRoutes } = await import('./routes/petstores');
-  console.log('Loading vets...'); const { default: vetsRoutes } = await import('./routes/vets');
-  console.log('Loading appointments...'); const { default: appointmentsRoutes } = await import('./routes/appointments');
-  console.log('Loading notifications...'); const { default: notificationsRoutes } = await import('./routes/notifications');
-  console.log('Loading chat...'); const { default: chatRoutes } = await import('./routes/chat');
-  console.log('Loading uploads...'); const { default: uploadsRoutes } = await import('./routes/uploads');
-  console.log('Loading admin...'); const { default: adminRoutes } = await import('./routes/admin');
-  console.log('Loading delivery...'); const { default: deliveryRoutes } = await import('./routes/delivery');
-  console.log('Loading records...'); const { default: recordsRoutes } = await import('./routes/records');
-  console.log('Loading cart...'); const { default: cartRoutes } = await import('./routes/cart');
-  console.log('Loading slots...'); const { default: slotsRoutes } = await import('./routes/slots');
-  console.log('Loading reminders...'); const { default: remindersRoutes } = await import('./routes/reminders');
-  console.log('Loading search...'); const { default: searchRoutes } = await import('./routes/search');
-  console.log('Loading statistics...'); const { default: statisticsRoutes } = await import('./routes/statistics');
-  console.log('Loading orders...'); const { default: ordersRoutes } = await import('./routes/orders');
-  console.log('Loading ai...'); const { default: aiRoutes } = await import('./routes/ai');
-  console.log('Loading posts...'); const { default: postsRoutes } = await import('./routes/posts');
-  console.log('Loading reviews...'); const { default: reviewsRoutes } = await import('./routes/reviews');
-  console.log('Loading transactions...'); const { default: transactionsRoutes } = await import('./routes/transactions');
-  console.log('Loading petGuides...'); const { default: petGuidesRoutes } = await import('./routes/petGuides');
-  console.log('Loading diseases...'); const { default: diseasesRoutes } = await import('./routes/diseases');
-  console.log('Loading forms...'); const { default: formsRoutes } = await import('./routes/forms');
-  console.log('Loading favorites...'); const { default: favoritesRoutes } = await import('./routes/favorites');
-  console.log('Loading coupons...'); const { default: couponsRoutes } = await import('./routes/coupons');
-  console.log('All routes loaded');
-
+  console.log('Loading auth...');
+  const { default: authRoutes } = await import('./routes/auth');
+  console.log('Loading vets...');
+  const { default: vetsRoutes } = await import('./routes/vets');
+  console.log('Loading appointments...');
+  const { default: appointmentsRoutes } = await import('./routes/appointments');
+  console.log('Loading records...');
+  const { default: recordsRoutes } = await import('./routes/records');
+  console.log('Loading dashboard...');
+  const { default: dashboardRoutes } = await import('./routes/dashboard');
+  console.log('Loading notifications...');
+  const { default: notificationsRoutes } = await import('./routes/notifications');
+  console.log('Loading posts...');
+  const { default: postsRoutes } = await import('./routes/posts');
+  console.log('Loading uploads...');
+  const { default: uploadsRoutes } = await import('./routes/uploads');
+  console.log('Loading petstores...');
+  const { default: petstoresRoutes } = await import('./routes/petstores');
+  console.log('Loading orders...');
+  const { default: ordersRoutes } = await import('./routes/orders');
+  console.log('Loading videos...');
+  const { default: videosRoutes } = await import('./routes/videos');
+  console.log('Loading admin...');
+  const { default: adminRoutes } = await import('./routes/admin');
+  console.log('Loading transactions...');
+  const { default: transactionsRoutes } = await import('./routes/transactions');
+  console.log('Loading pet-guides...');
+  const { default: petGuidesRoutes } = await import('./routes/petGuides');
+  console.log('Loading diseases...');
+  const { default: diseasesRoutes } = await import('./routes/diseases');
+  console.log('Loading coupons...');
+  const { default: couponsRoutes } = await import('./routes/coupons');
+  console.log('Loading search...');
+  const { default: searchRoutes } = await import('./routes/search');
+  console.log('Loading statistics...');
+  const { default: statisticsRoutes } = await import('./routes/statistics');
+  console.log('Loading payments...');
+  const { default: paymentsRoutes } = await import('./routes/payments');
+  console.log('Core routes loaded');
   return {
     authRoutes,
-    paymentsRoutes,
-    videosRoutes,
-    petstoresRoutes,
     vetsRoutes,
     appointmentsRoutes,
-    notificationsRoutes,
-    chatRoutes,
-    uploadsRoutes,
-    adminRoutes,
-    deliveryRoutes,
     recordsRoutes,
-    cartRoutes,
-    slotsRoutes,
-    remindersRoutes,
-    searchRoutes,
-    statisticsRoutes,
-    ordersRoutes,
-    aiRoutes,
+    dashboardRoutes,
+    notificationsRoutes,
     postsRoutes,
-    reviewsRoutes,
+    uploadsRoutes,
+    petstoresRoutes,
+    ordersRoutes,
+    videosRoutes,
+    adminRoutes,
     transactionsRoutes,
     petGuidesRoutes,
     diseasesRoutes,
-    formsRoutes,
-    favoritesRoutes,
-    couponsRoutes
+    couponsRoutes,
+    searchRoutes,
+    statisticsRoutes,
+    paymentsRoutes
   };
 };
 
@@ -126,13 +125,6 @@ app.use((req, res, next) => {
 
 const startServer = async () => {
   try {
-    // Initialize database connection (Soft Fail)
-    try {
-      await connectMongo();
-    } catch (dbError) {
-      console.error('⚠️ Database connection failed (Running in Fallback Mode):', dbError);
-    }
-
     // Initialize Socket.IO
     const { initializeSocket } = await import('./socket');
     initializeSocket(io);
@@ -151,34 +143,24 @@ const startServer = async () => {
     app.use('/health', health);
     app.use('/api/health', health);
     app.use('/api/auth', routes.authRoutes);
-    app.use('/api/payments', routes.paymentsRoutes);
-    app.use('/api/videos', routes.videosRoutes);
-    app.use('/api/petstores', routes.petstoresRoutes);
     app.use('/api/vets', routes.vetsRoutes);
     app.use('/api/appointments', routes.appointmentsRoutes);
-    app.use('/api/notifications', routes.notificationsRoutes);
-    app.use('/api/chat', routes.chatRoutes);
-    app.use('/api/uploads', routes.uploadsRoutes);
-    app.use('/api/coupons', routes.couponsRoutes);
-    app.use('/api/admin', routes.adminRoutes);
-    app.use('/api/delivery', routes.deliveryRoutes);
     app.use('/api/records', routes.recordsRoutes);
-    app.use('/api/cart', routes.cartRoutes);
-    app.use('/api/slots', routes.slotsRoutes);
-    app.use('/api/reminders', routes.remindersRoutes);
-    app.use('/api/search', routes.searchRoutes);
-    app.use('/api/statistics', routes.statisticsRoutes);
-    // Duplicate statistics route removed
-    app.use('/api/orders', routes.ordersRoutes)
-    app.use('/api/ai', routes.aiRoutes);
-    app.use('/api/ai', routes.aiRoutes);
+    app.use('/api', routes.dashboardRoutes);
+    app.use('/api/notifications', routes.notificationsRoutes);
     app.use('/api/posts', routes.postsRoutes);
-    app.use('/api/reviews', routes.reviewsRoutes);
+    app.use('/api/uploads', routes.uploadsRoutes);
+    app.use('/api/petstores', routes.petstoresRoutes);
+    app.use('/api/orders', routes.ordersRoutes);
+    app.use('/api/videos', routes.videosRoutes);
+    app.use('/api/admin', routes.adminRoutes);
     app.use('/api/transactions', routes.transactionsRoutes);
     app.use('/api/pet-guides', routes.petGuidesRoutes);
     app.use('/api/diseases', routes.diseasesRoutes);
-    app.use('/api/forms', routes.formsRoutes);
-    app.use('/api/favorites', routes.favoritesRoutes);
+    app.use('/api/coupons', routes.couponsRoutes);
+    app.use('/api/search', routes.searchRoutes);
+    app.use('/api/statistics', routes.statisticsRoutes);
+    app.use('/api/payments', routes.paymentsRoutes);
 
     // Serve uploaded files
     const path = await import('path');
@@ -203,8 +185,8 @@ const startServer = async () => {
       });
     });
 
-    // Start the server
-    const port = Number(process.env.PORT || 4000);
+    // Start the server (Hugging Face uses 7860 by default)
+    const port = Number(process.env.PORT || 7860);
     server.listen(port, () => {
       console.log(`🚀 Server running on port ${port}`)
     });

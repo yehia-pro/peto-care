@@ -42,6 +42,26 @@ interface AuthState {
   setError: (error: string | null) => void
 }
 
+const fetchFullProfile = async (fallback: ExtendedUser): Promise<ExtendedUser> => {
+  try {
+    const profileRes = await authAPI.getProfile()
+    const p = profileRes.data
+    return {
+      ...fallback,
+      id: p.id,
+      email: p.email ?? fallback.email,
+      fullName: p.fullName ?? fallback.fullName,
+      role: p.role ?? fallback.role,
+      phone: p.phone ?? fallback.phone,
+      avatarUrl: p.avatarUrl ?? fallback.avatarUrl,
+      birthDate: fallback.birthDate,
+      favorites: fallback.favorites
+    }
+  } catch {
+    return fallback
+  }
+}
+
 const initialToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 const initialUser = typeof window !== 'undefined' ? (() => {
   try {
@@ -64,7 +84,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await authAPI.login({ email, password, ...(captcha || {}) })
       localStorage.setItem('token', res.data.token)
-      const userData = res.data.user || { email }
+      const baseUser = (res.data.user || { email }) as ExtendedUser
+      const userData = await fetchFullProfile(baseUser)
       localStorage.setItem('user', JSON.stringify(userData))
       set({ user: userData as any, token: res.data.token, loading: false, isAuthenticated: true })
     } catch (backendErr: any) {
@@ -84,8 +105,17 @@ export const useAuthStore = create<AuthState>((set) => ({
         role: backendRole,
         phone: userData.phone
       })
+      if (res.data?.pendingApproval) {
+        set({ loading: false, isAuthenticated: false, error: null })
+        return
+      }
+      if (!res.data?.token) {
+        set({ loading: false, isAuthenticated: false, error: 'register_no_token' })
+        throw new Error('register_no_token')
+      }
       localStorage.setItem('token', res.data.token)
-      const createdUser = res.data.user || { email, role: backendRole, fullName: userData.fullName }
+      const baseCreated = (res.data.user || { email, role: backendRole, fullName: userData.fullName }) as ExtendedUser
+      const createdUser = await fetchFullProfile(baseCreated)
       localStorage.setItem('user', JSON.stringify(createdUser))
       set({ user: createdUser as any, token: res.data.token, loading: false, isAuthenticated: true })
     } catch (error: any) {

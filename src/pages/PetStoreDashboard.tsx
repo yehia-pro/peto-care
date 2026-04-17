@@ -261,7 +261,8 @@ const PetStoreDashboard: React.FC = () => {
         }
       }
 
-      const url = editingProductId ? `/api/petstores/products/${editingProductId}` : '/api/petstores/products'
+      const base = String(API_BASE_URL).replace(/\/$/, '')
+      const url = editingProductId ? `${base}/petstores/products/${editingProductId}` : `${base}/petstores/products`
       const method = editingProductId ? 'PUT' : 'POST'
       const res = await fetch(url, {
         method,

@@ -2,96 +2,216 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { validate } from '../middleware/validate'
 import { requireAuth } from '../middleware/auth'
-import { Cart } from '../models/Cart'
-import { Types } from 'mongoose'
+import { supabaseAdmin } from '../lib/supabase'
 
 const router = Router()
 
 const addToCartSchema = z.object({
   body: z.object({
-    productId: z.string(),
+    productId: z.string().uuid(),
     quantity: z.number().min(1),
     price: z.number().min(0),
     name: z.string(),
-    image: z.string().optional()
+    image: z.string().optional(),
+    storeId: z.string().uuid()
   })
 })
 
-// Get user's cart
-router.get('/', requireAuth(['user', 'vet']), async (req, res) => {
-  const userId = (req as any).user.id
-  let cart = await Cart.findOne({ userId })
+// Helper to get or create cart for user
+async function getOrCreateCart(userId: string) {
+  // Try to get existing cart
+  const { data: existingCart, error: fetchError } = await supabaseAdmin
+    .from('carts')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
 
-  if (!cart) {
-    cart = await Cart.create({ userId, items: [], totalAmount: 0 })
+  if (fetchError) {
+    throw new Error(`Failed to fetch cart: ${fetchError.message}`)
   }
 
-  res.json({ cart })
+  if (existingCart) {
+    // Get cart items
+    const { data: items, error: itemsError } = await supabaseAdmin
+      .from('cart_items')
+      .select('*')
+      .eq('cart_id', existingCart.id)
+
+    if (itemsError) {
+      throw new Error(`Failed to fetch cart items: ${itemsError.message}`)
+    }
+
+    return { ...existingCart, items: items || [] }
+  }
+
+  // Create new cart
+  const { data: newCart, error: createError } = await supabaseAdmin
+    .from('carts')
+    .insert({ user_id: userId })
+    .select()
+    .single()
+
+  if (createError || !newCart) {
+    throw new Error(`Failed to create cart: ${createError?.message || 'Unknown error'}`)
+  }
+
+  return { ...newCart, items: [] }
+}
+
+// Get user's cart
+router.get('/', requireAuth(['user', 'vet']), async (req, res) => {
+  try {
+    const userId = (req as any).user.id
+    const cart = await getOrCreateCart(userId)
+    res.json({ cart })
+  } catch (error: any) {
+    console.error('Get cart error:', error)
+    res.status(500).json({ error: 'server_error', message: error.message || 'فشل في جلب السلة' })
+  }
 })
 
 // Add item to cart
 router.post('/add', requireAuth(['user', 'vet']), validate(addToCartSchema), async (req, res) => {
-  const userId = (req as any).user.id
-  const { productId, quantity, price, name, image } = req.body
+  try {
+    const userId = (req as any).user.id
+    const { productId, quantity, price, name, image, storeId } = req.body
 
-  let cart = await Cart.findOne({ userId })
-  if (!cart) {
-    cart = new Cart({ userId, items: [], totalAmount: 0 })
+    const cart = await getOrCreateCart(userId)
+
+    // Check if item already exists in cart
+    const { data: existingItem, error: checkError } = await supabaseAdmin
+      .from('cart_items')
+      .select('*')
+      .eq('cart_id', cart.id)
+      .eq('product_id', productId)
+      .maybeSingle()
+
+    if (checkError) {
+      throw new Error(`Failed to check existing item: ${checkError.message}`)
+    }
+
+    if (existingItem) {
+      // Update quantity
+      const { error: updateError } = await supabaseAdmin
+        .from('cart_items')
+        .update({ quantity: existingItem.quantity + quantity })
+        .eq('id', existingItem.id)
+
+      if (updateError) {
+        throw new Error(`Failed to update item: ${updateError.message}`)
+      }
+    } else {
+      // Insert new item
+      const { error: insertError } = await supabaseAdmin
+        .from('cart_items')
+        .insert({
+          cart_id: cart.id,
+          product_id: productId,
+          store_id: storeId,
+          quantity,
+          price,
+          name,
+          image_url: image
+        })
+
+      if (insertError) {
+        throw new Error(`Failed to add item: ${insertError.message}`)
+      }
+    }
+
+    // Return updated cart
+    const updatedCart = await getOrCreateCart(userId)
+    res.json({ cart: updatedCart })
+  } catch (error: any) {
+    console.error('Add to cart error:', error)
+    res.status(500).json({ error: 'server_error', message: error.message || 'فشل في إضافة المنتج للسلة' })
   }
-
-  const existingItemIndex = cart.items.findIndex(item => item.productId.toString() === productId)
-
-  if (existingItemIndex > -1) {
-    cart.items[existingItemIndex].quantity += quantity
-  } else {
-    cart.items.push({
-      productId: new Types.ObjectId(productId),
-      quantity,
-      price,
-      name,
-      image
-    })
-  }
-
-  await cart.save()
-  res.json({ cart })
 })
 
 // Remove item from cart
 router.delete('/remove/:productId', requireAuth(['user', 'vet']), async (req, res) => {
-  const userId = (req as any).user.id
-  const { productId } = req.params
+  try {
+    const userId = (req as any).user.id
+    const { productId } = req.params
 
-  const cart = await Cart.findOne({ userId })
-  if (!cart) return res.status(404).json({ error: 'cart_not_found', message: 'السلة غير موجودة' })
+    const cart = await getOrCreateCart(userId)
+    if (!cart || cart.items.length === 0) {
+      return res.status(404).json({ error: 'cart_empty', message: 'السلة فارغة' })
+    }
 
-  cart.items = cart.items.filter(item => item.productId.toString() !== productId)
-  await cart.save()
+    // Delete the item
+    const { error: deleteError } = await supabaseAdmin
+      .from('cart_items')
+      .delete()
+      .eq('cart_id', cart.id)
+      .eq('product_id', productId)
 
-  res.json({ cart })
+    if (deleteError) {
+      throw new Error(`Failed to remove item: ${deleteError.message}`)
+    }
+
+    // Return updated cart
+    const updatedCart = await getOrCreateCart(userId)
+    res.json({ cart: updatedCart })
+  } catch (error: any) {
+    console.error('Remove from cart error:', error)
+    res.status(500).json({ error: 'server_error', message: error.message || 'فشل في حذف المنتج من السلة' })
+  }
 })
 
-// Checkout (Mock implementation for now, or link to payment)
-router.post('/checkout', requireAuth(['user', 'vet']), async (req, res) => {
-  const userId = (req as any).user.id
-  const cart = await Cart.findOne({ userId })
+// Clear cart (used after successful order)
+router.post('/clear', requireAuth(['user', 'vet']), async (req, res) => {
+  try {
+    const userId = (req as any).user.id
+    const cart = await getOrCreateCart(userId)
 
-  if (!cart || cart.items.length === 0) {
-    return res.status(400).json({ error: 'cart_empty', message: 'السلة فارغة' })
+    // Delete all items
+    const { error: deleteError } = await supabaseAdmin
+      .from('cart_items')
+      .delete()
+      .eq('cart_id', cart.id)
+
+    if (deleteError) {
+      throw new Error(`Failed to clear cart: ${deleteError.message}`)
+    }
+
+    res.json({ success: true, message: 'تم تفريغ السلة' })
+  } catch (error: any) {
+    console.error('Clear cart error:', error)
+    res.status(500).json({ error: 'server_error', message: error.message || 'فشل في تفريغ السلة' })
   }
+})
 
-  // Here you would integrate with payment gateway
-  // For now, we'll just clear the cart and return success
+// Get cart summary (for checkout)
+router.get('/summary', requireAuth(['user', 'vet']), async (req, res) => {
+  try {
+    const userId = (req as any).user.id
+    const cart = await getOrCreateCart(userId)
 
-  const orderTotal = cart.totalAmount
-  const items = [...cart.items]
+    // Calculate totals per store
+    const storeTotals: Record<string, { storeId: string; items: any[]; total: number }> = {}
+    let grandTotal = 0
 
-  // Clear cart
-  cart.items = []
-  cart.totalAmount = 0
-  await cart.save()
+    for (const item of cart.items) {
+      if (!storeTotals[item.store_id]) {
+        storeTotals[item.store_id] = { storeId: item.store_id, items: [], total: 0 }
+      }
+      storeTotals[item.store_id].items.push(item)
+      const itemTotal = Number(item.price) * Number(item.quantity)
+      storeTotals[item.store_id].total += itemTotal
+      grandTotal += itemTotal
+    }
 
-  res.json({ success: true, message: 'تم الطلب بنجاح', orderTotal, items })
+    res.json({
+      items: cart.items,
+      storeBreakdown: Object.values(storeTotals),
+      totalAmount: grandTotal,
+      itemCount: cart.items.length
+    })
+  } catch (error: any) {
+    console.error('Cart summary error:', error)
+    res.status(500).json({ error: 'server_error', message: error.message || 'فشل في جلب ملخص السلة' })
+  }
 })
 
 export default router

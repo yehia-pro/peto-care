@@ -7,32 +7,50 @@ import { MapPin, Clock, Phone, Globe, Info, Upload, CheckCircle2, AlertCircle } 
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-const petStoreSchema = z.object({
-  storeName: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
-  businessLicense: z.string().min(3),
-  storeType: z.enum(['comprehensive', 'clinic', 'grooming', 'boarding', 'training', 'pharmacy']),
-  description: z.string().optional(),
-  address: z.string().min(5),
-  city: z.string().min(2),
-  country: z.string().min(2),
-  phone: z.string().min(8),
-  whatsapp: z.string().optional().or(z.literal('')),
-  openingTime: z.string().optional(),
-  closingTime: z.string().optional(),
-  services: z.array(z.string()).optional(),
-  brands: z.array(z.string()).optional(),
-  latitude: z.string().optional(),
-  longitude: z.string().optional()
-})
-
-type PetStoreFormData = z.infer<typeof petStoreSchema>
+type PetStoreFormData = {
+  storeName: string
+  email: string
+  password: string
+  businessLicense: string
+  storeType: 'comprehensive' | 'clinic' | 'grooming' | 'boarding' | 'training' | 'pharmacy'
+  description?: string
+  address: string
+  city: string
+  country: string
+  phone: string
+  whatsapp?: string
+  openingTime?: string
+  closingTime?: string
+  services?: string[]
+  brands?: string[]
+  latitude?: string
+  longitude?: string
+}
 
 const PetStoreRegistration: React.FC = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+
+  const petStoreSchema = useMemo(() => z.object({
+    storeName: z.string().min(2, t('registration.validation.storeNameMin')),
+    email: z.string().email(t('registration.validation.emailInvalid')),
+    password: z.string().min(6, t('registration.validation.passwordMin')),
+    businessLicense: z.string().min(3, t('registration.validation.businessLicenseMin')),
+    storeType: z.enum(['comprehensive', 'clinic', 'grooming', 'boarding', 'training', 'pharmacy']),
+    description: z.string().optional(),
+    address: z.string().min(5, t('registration.validation.addressMin')),
+    city: z.string().min(2, t('registration.validation.cityMin')),
+    country: z.string().min(2, t('registration.validation.countryRequired')),
+    phone: z.string().min(8, t('registration.validation.phoneMin')),
+    whatsapp: z.string().optional().or(z.literal('')),
+    openingTime: z.string().optional(),
+    closingTime: z.string().optional(),
+    services: z.array(z.string()).optional(),
+    brands: z.array(z.string()).optional(),
+    latitude: z.string().optional(),
+    longitude: z.string().optional()
+  }), [t])
 
   const [formData, setFormData] = useState<PetStoreFormData>({
     storeName: '',
@@ -183,7 +201,7 @@ const PetStoreRegistration: React.FC = () => {
     }
 
     if (!idFrontImage || !idBackImage) {
-      toast.error('يجب رفع صورة وجه وظهر بطاقة الهوية لتأكيد هوية المتجر')
+      toast.error(t('registration.errors.identityRequired'))
       return
     }
 
@@ -222,7 +240,10 @@ const PetStoreRegistration: React.FC = () => {
 
       const res = await authAPI.registerMultipart(form)
 
-      if (res.data?.token) {
+      if (res.data?.pendingApproval) {
+        toast.success(res.data.message || t('registration.messages.pending'))
+        navigate('/login')
+      } else if (res.data?.token) {
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('user', JSON.stringify(res.data.user))
         toast.success(t('registration.messages.success'))
@@ -239,7 +260,7 @@ const PetStoreRegistration: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-12 px-4 sm:px-6 lg:px-8" dir={i18n.dir()}>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-amber-100 rounded-2xl mb-4">
@@ -636,19 +657,15 @@ const PetStoreRegistration: React.FC = () => {
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200" dir="rtl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200" dir={i18n.dir()}>
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center scale-in-center">
             <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-100 mb-6 border-4 border-white shadow-sm">
               <CheckCircle2 className="h-10 w-10 text-[var(--color-vet-accent)]" />
             </div>
             
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              تأكيد إرسال الطلب
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('registration.confirm.title')}</h3>
             
-            <p className="text-gray-600 mb-8 leading-relaxed text-sm">
-              هل أنت متأكد من صحة جميع البيانات والمستندات المرفقة؟ بمجرد الإرسال، سيتطلب الأمر مراجعة الإدارة ولا يمكنك التعديل المباشر.
-            </p>
+            <p className="text-gray-600 mb-8 leading-relaxed text-sm">{t('registration.confirm.message')}</p>
             
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -657,7 +674,7 @@ const PetStoreRegistration: React.FC = () => {
                 disabled={loading}
                 className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all text-sm"
               >
-                المراجعة والتعديل
+                {t('registration.confirm.review')}
               </button>
               <button
                 type="button"
@@ -668,10 +685,10 @@ const PetStoreRegistration: React.FC = () => {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    جاري الإرسال...
+                    {t('registration.confirm.submitting')}
                   </>
                 ) : (
-                  'نعم، تأكيد الإرسال'
+                  t('registration.confirm.submit')
                 )}
               </button>
             </div>

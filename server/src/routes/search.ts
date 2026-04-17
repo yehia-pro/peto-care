@@ -1,7 +1,5 @@
 import { Router } from 'express'
-import mongoose, { Schema } from 'mongoose'
-import MUserModel from '../models/User'
-import MPetStoreModel from '../models/PetStore'
+import { supabaseAdmin } from '../lib/supabase'
 
 const router = Router()
 
@@ -13,89 +11,60 @@ router.get('/vets', async (req, res) => {
             specialty,
             minRating,
             page = '1',
-            limit = '12',
-            sortBy = 'rating'
+            limit = '12'
         } = req.query
 
-        const query: any = { role: 'vet', isApproved: true }
+        const pageNum = parseInt(page as string)
+        const limitNum = parseInt(limit as string)
 
-        // Build filter query
-        const filters: any = {}
+        let query = supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact' })
+            .eq('role', 'vet')
+            .range((pageNum - 1) * limitNum, pageNum * limitNum - 1)
 
         if (location) {
-            // Search in contact field for location/country
-            filters.$or = [
-                { 'contact': { $regex: location, $options: 'i' } },
-                { 'fullName': { $regex: location, $options: 'i' } }
-            ]
+            query = query.ilike('metadata->>country', `%${location}%`)
         }
 
         if (specialty) {
-            filters['contact'] = { $regex: specialty, $options: 'i' }
+            query = query.ilike('metadata->>specialization', `%${specialty}%`)
         }
-
-        // Combine queries
-        const finalQuery = { ...query, ...filters }
-
-        // Pagination
-        const pageNum = parseInt(page as string)
-        const limitNum = parseInt(limit as string)
-        const skip = (pageNum - 1) * limitNum
 
         // Get vets
-        let vets = await MUserModel.find(finalQuery)
-            .select('fullName email phone contact avatarUrl syndicateCardImageUrl rating reviewCount')
-            .skip(skip)
-            .limit(limitNum)
-            .lean() as any
+        const { data: vets, error, count } = await query
 
-        // Parse contact JSON and calculate rating
-        // Parse contact JSON
-        const vetsWithDetails = vets.map((vet: any) => {
-            let contactData: any = {}
-            try {
-                contactData = JSON.parse(vet.contact || '{}')
-            } catch (e) { }
+        if (error) {
+            return res.status(500).json({ error: 'search_failed', message: error.message })
+        }
 
-            return {
-                id: vet._id.toString(),
-                fullName: vet.fullName,
-                email: vet.email,
+        const minRatingNum = minRating ? Number(minRating) : 0
+
+        // Format vets
+        const formattedVets = (vets || [])
+            .map((vet: any) => ({
+                id: vet.id,
+                fullName: vet.full_name,
+                email: vet.email || '',
                 phone: vet.phone,
-                avatarUrl: vet.avatarUrl,
-                specialization: contactData.specialization || 'عام',
-                experienceYears: contactData.experienceYears || 0,
-                country: contactData.country || 'مصر',
-                qualification: contactData.qualification || '',
-                // Initial ratings (will be populated below)
-                rating: vet.rating || 0,
-                reviewCount: vet.reviewCount || 0
-            }
-        })
-
-        // Apply rating filter after parsing
-        if (minRating) {
-            const minRatingNum = parseFloat(minRating as string)
-            vets = vets.filter((vet: any) => vet.rating >= minRatingNum)
-        }
-
-        // Sort
-        if (sortBy === 'rating') {
-            vets.sort((a: any, b: any) => b.rating - a.rating)
-        } else if (sortBy === 'experience') {
-            vets.sort((a: any, b: any) => b.experienceYears - a.experienceYears)
-        }
-
-        // Get total count
-        const total = await MUserModel.countDocuments(finalQuery)
+                avatarUrl: vet.avatar_url,
+                specialization: vet.metadata?.specialization || 'عام',
+                experienceYears: Number(vet.metadata?.experience_years || 0),
+                country: vet.metadata?.country || 'مصر',
+                qualification: vet.metadata?.qualification || '',
+                rating: Number(vet.metadata?.rating || 0),
+                reviewCount: Number(vet.metadata?.review_count || 0),
+                approved: vet.metadata?.approval_status === 'approved' || vet.is_approved === true
+            }))
+            .filter((vet: any) => vet.approved && vet.rating >= minRatingNum)
 
         return res.json({
-            vets,
+            vets: formattedVets,
             pagination: {
                 page: pageNum,
                 limit: limitNum,
-                total,
-                pages: Math.ceil(total / limitNum)
+                total: count || 0,
+                pages: Math.ceil((count || 0) / limitNum)
             }
         })
     } catch (error) {
@@ -112,87 +81,80 @@ router.get('/stores', async (req, res) => {
             category,
             minRating,
             page = '1',
-            limit = '12',
-            sortBy = 'rating'
+            limit = '12'
         } = req.query
 
-        const query: any = {}
+        const pageNum = parseInt(page as string)
+        const limitNum = parseInt(limit as string)
 
-        // Build filter query
+        let query = supabaseAdmin
+            .from('stores')
+            .select('*', { count: 'exact' })
+            .range((pageNum - 1) * limitNum, pageNum * limitNum - 1)
+
         if (location) {
-            query.$or = [
-                { city: { $regex: location, $options: 'i' } },
-                { address: { $regex: location, $options: 'i' } }
-            ]
+            query = query.or(`city.ilike.%${location}%,address.ilike.%${location}%`)
         }
 
         if (category) {
-            query['products.category'] = { $regex: category, $options: 'i' }
+            query = query.ilike('metadata->>storeType', `%${category}%`)
         }
 
-        if (minRating) {
-            query.rating = { $gte: parseFloat(minRating as string) }
+        const { data: stores, error, count } = await query
+
+        if (error) {
+            return res.status(500).json({ error: 'search_failed', message: error.message })
         }
 
-        // Pagination
-        const pageNum = parseInt(page as string)
-        const limitNum = parseInt(limit as string)
-        const skip = (pageNum - 1) * limitNum
+        const ownerIds = Array.from(
+            new Set((stores || []).map((s: any) => s.owner_user_id || s.user_id).filter(Boolean))
+        )
+        const ownerById = new Map<string, any>()
+        if (ownerIds.length > 0) {
+            const { data: owners } = await supabaseAdmin
+                .from('profiles')
+                .select('id, full_name, email, phone, metadata, is_approved')
+                .in('id', ownerIds)
 
-        // Get stores
-        let stores = await MPetStoreModel.find(query)
-            .skip(skip)
-            .limit(limitNum)
-            .lean()
+            for (const owner of owners || []) {
+                ownerById.set(owner.id, owner)
+            }
+        }
 
-        // Get user data for each store
-        const storesWithUsers = await Promise.all(
-            stores.map(async (store: any) => {
-                const user = await MUserModel.findById(store.userId)
-                    .select('fullName email phone isApproved')
-                    .lean() as any
+        const minRatingNum = minRating ? Number(minRating) : 0
 
-                if (!user || !user.isApproved) return null
-
+        // Format stores
+        const formattedStores = (stores || [])
+            .map((store: any) => {
+                const ownerId = store.owner_user_id || store.user_id
+                const owner = ownerById.get(ownerId)
                 return {
-                    id: store._id.toString(),
-                    userId: store.userId,
-                    storeName: store.storeName,
+                    id: store.id,
+                    userId: ownerId,
+                    storeName: store.name,
                     description: store.description,
-                    brands: store.brands,
+                    brands: store.brands || [],
                     city: store.city,
                     address: store.address,
-                    rating: store.rating || 0,
-                    totalProducts: store.products?.length || 0,
+                    rating: Number(store.metadata?.rating || 0),
+                    totalProducts: 0,
                     owner: {
-                        fullName: user.fullName,
-                        email: user.email,
-                        phone: user.phone
-                    }
+                        fullName: owner?.full_name || '',
+                        email: owner?.email || '',
+                        phone: owner?.phone || ''
+                    },
+                    approved: owner?.metadata?.approval_status === 'approved' || owner?.is_approved === true
                 }
             })
-        )
-
-        // Filter out null values (unapproved stores)
-        const filteredStores = storesWithUsers.filter(s => s !== null)
-
-        // Sort
-        if (sortBy === 'rating') {
-            filteredStores.sort((a: any, b: any) => b.rating - a.rating)
-        } else if (sortBy === 'products') {
-            filteredStores.sort((a: any, b: any) => b.totalProducts - a.totalProducts)
-        }
-
-        // Get total count
-        const total = await MPetStoreModel.countDocuments(query)
+            .filter((store: any) => store.approved && store.rating >= minRatingNum)
 
         return res.json({
-            stores: filteredStores,
+            stores: formattedStores,
             pagination: {
                 page: pageNum,
                 limit: limitNum,
-                total,
-                pages: Math.ceil(total / limitNum)
+                total: count || 0,
+                pages: Math.ceil((count || 0) / limitNum)
             }
         })
     } catch (error) {

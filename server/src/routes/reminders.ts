@@ -2,13 +2,13 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { validate } from '../middleware/validate'
 import { requireAuth } from '../middleware/auth'
-import ReminderModel from '../models/Reminder'
+import { supabaseAdmin } from '../lib/supabase'
 
 const router = Router()
 
 const createSchema = z.object({
     body: z.object({
-        petId: z.string().optional(),
+        petId: z.string().uuid().optional(),
         type: z.enum(['vaccination', 'medication', 'appointment', 'checkup']),
         title: z.string(),
         description: z.string(),
@@ -22,15 +22,21 @@ router.post('/', requireAuth(['user']), validate(createSchema), async (req, res)
         const userId = (req as any).user.id
         const { petId, type, title, description, dueDate } = req.body
 
-        const reminder = await ReminderModel.create({
-            userId,
-            petId,
-            type,
-            title,
-            description,
-            dueDate: new Date(dueDate)
-        })
+        const { data: reminder, error } = await supabaseAdmin
+            .from('reminders')
+            .insert({
+                user_id: userId,
+                pet_id: petId,
+                type,
+                title,
+                description,
+                due_date: dueDate,
+                sent: false
+            })
+            .select()
+            .single()
 
+        if (error) return res.status(500).json({ error: 'insert_failed', message: error.message })
         res.status(201).json({ reminder })
     } catch (error) {
         console.error('Error creating reminder:', error)
@@ -44,14 +50,16 @@ router.get('/', requireAuth(['user']), async (req, res) => {
         const userId = (req as any).user.id
         const { upcoming } = req.query
 
-        const query: any = { userId }
+        let query = supabaseAdmin.from('reminders').select('*').eq('user_id', userId)
+
         if (upcoming === 'true') {
-            query.dueDate = { $gte: new Date() }
-            query.sent = false
+            query = query.gte('due_date', new Date().toISOString()).eq('sent', false)
         }
 
-        const reminders = await ReminderModel.find(query).sort({ dueDate: 1 })
-        res.json({ reminders })
+        const { data: reminders, error } = await query.order('due_date', { ascending: true })
+
+        if (error) return res.status(500).json({ error: 'fetch_failed', message: error.message })
+        res.json({ reminders: reminders || [] })
     } catch (error) {
         console.error('Error fetching reminders:', error)
         res.status(500).json({ error: 'server_error', message: 'خطأ في الخادم' })
@@ -64,13 +72,16 @@ router.put('/:id', requireAuth(['user']), async (req, res) => {
         const { id } = req.params
         const userId = (req as any).user.id
 
-        const reminder = await ReminderModel.findOne({ _id: id, userId })
-        if (!reminder) {
-            return res.status(404).json({ error: 'not_found', message: 'التذكير غير موجود' })
-        }
+        const { data: reminder, error } = await supabaseAdmin
+            .from('reminders')
+            .update(req.body)
+            .eq('id', id)
+            .eq('user_id', userId)
+            .select()
+            .single()
 
-        Object.assign(reminder, req.body)
-        await reminder.save()
+        if (error) return res.status(500).json({ error: 'update_failed', message: error.message })
+        if (!reminder) return res.status(404).json({ error: 'not_found', message: 'التذكير غير موجود' })
 
         res.json({ reminder })
     } catch (error) {
@@ -85,12 +96,13 @@ router.delete('/:id', requireAuth(['user']), async (req, res) => {
         const { id } = req.params
         const userId = (req as any).user.id
 
-        const reminder = await ReminderModel.findOne({ _id: id, userId })
-        if (!reminder) {
-            return res.status(404).json({ error: 'not_found', message: 'التذكير غير موجود' })
-        }
+        const { error } = await supabaseAdmin
+            .from('reminders')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', userId)
 
-        await reminder.deleteOne()
+        if (error) return res.status(500).json({ error: 'delete_failed', message: error.message })
         res.json({ success: true })
     } catch (error) {
         console.error('Error deleting reminder:', error)

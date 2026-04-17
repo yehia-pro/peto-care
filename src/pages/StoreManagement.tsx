@@ -105,13 +105,17 @@ const StoreManagement: React.FC = () => {
       setIsSubmitting(true)
       // Register as a new user with role 'petstore'
       // This will create the User and the PetStore entry
-      await authAPI.register({
+      const reg = await authAPI.register({
         ...newStore,
         role: 'petstore',
         contact: JSON.stringify({ description: newStore.description, address: newStore.address })
       })
 
-      toast.success('تم تسجيل المتجر بنجاح! في انتظار الموافقة.')
+      if (reg.data?.pendingApproval) {
+        toast.success(reg.data.message || 'تم تسجيل المتجر! في انتظار موافقة الإدارة.')
+      } else {
+        toast.success('تم تسجيل المتجر بنجاح!')
+      }
       handleCloseModal()
       fetchStores()
     } catch (error: any) {

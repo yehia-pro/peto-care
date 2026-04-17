@@ -60,11 +60,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         } else {
             disconnect()
         }
-
-        return () => {
-            // Cleanup on unmount
-            disconnect()
-        }
+        // Intentionally no cleanup disconnect: React 18 StrictMode remount would tear down
+        // a WebSocket still handshaking and spam the console. Logout path above still disconnects.
     }, [user, token])
 
     useEffect(() => {

@@ -2,36 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
-import mongoose, { Schema, Model } from 'mongoose';
-
-const SlotSchema = new Schema({
-    vetId: {
-        type: String,
-        required: true,
-        index: true
-    },
-    date: {
-        type: String, // YYYY-MM-DD
-        required: true
-    },
-    time: {
-        type: String, // HH:mm
-        required: true
-    },
-    isBooked: {
-        type: Boolean,
-        default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-// Compound index to prevent duplicate slots for same vet at same time
-SlotSchema.index({ vetId: 1, date: 1, time: 1 }, { unique: true });
-
-export const SlotModel: Model<any> = mongoose.models.Slot || mongoose.model('Slot', SlotSchema);
+import { supabaseAdmin } from '../lib/supabase';
 
 const router = Router();
 
@@ -46,8 +17,15 @@ const createSlotSchema = z.object({
 router.get('/', requireAuth(['vet']), async (req, res) => {
     try {
         const vetId = (req as any).user.id;
-        const slots = await SlotModel.find({ vetId }).sort({ date: 1, time: 1 });
-        return res.json({ slots });
+        const { data: slots, error } = await supabaseAdmin
+            .from('slots')
+            .select('*')
+            .eq('vet_id', vetId)
+            .order('date', { ascending: true })
+            .order('time', { ascending: true });
+
+        if (error) return res.status(500).json({ error: 'Failed to fetch slots', message: error.message });
+        return res.json({ slots: slots || [] });
     } catch (error) {
         console.error('Error fetching slots:', error);
         return res.status(500).json({ error: 'Failed to fetch slots' });
@@ -60,17 +38,24 @@ router.post('/', requireAuth(['vet']), validate(createSlotSchema), async (req, r
         const vetId = (req as any).user.id;
         const { date, time } = req.body;
 
-        const existingSlot = await SlotModel.findOne({ vetId, date, time });
-        if (existingSlot) {
-            return res.status(409).json({ error: 'Slot already exists' });
-        }
+        // Check if slot exists
+        const { data: existing } = await supabaseAdmin
+            .from('slots')
+            .select('*')
+            .eq('vet_id', vetId)
+            .eq('date', date)
+            .eq('time', time)
+            .maybeSingle();
 
-        const slot = await SlotModel.create({
-            vetId,
-            date,
-            time
-        });
+        if (existing) return res.status(409).json({ error: 'Slot already exists' });
 
+        const { data: slot, error } = await supabaseAdmin
+            .from('slots')
+            .insert({ vet_id: vetId, date, time, is_booked: false })
+            .select()
+            .single();
+
+        if (error) return res.status(500).json({ error: 'Failed to create slot', message: error.message });
         return res.status(201).json({ slot });
     } catch (error) {
         console.error('Error creating slot:', error);
@@ -82,17 +67,22 @@ router.post('/', requireAuth(['vet']), validate(createSlotSchema), async (req, r
 router.delete('/:id', requireAuth(['vet']), async (req, res) => {
     try {
         const vetId = (req as any).user.id;
-        const slot = await SlotModel.findOne({ _id: req.params.id, vetId });
+        const { id } = req.params;
 
-        if (!slot) {
-            return res.status(404).json({ error: 'Slot not found' });
-        }
+        // Check if slot exists and belongs to vet
+        const { data: slot } = await supabaseAdmin
+            .from('slots')
+            .select('*')
+            .eq('id', id)
+            .eq('vet_id', vetId)
+            .maybeSingle();
 
-        if (slot.isBooked) {
-            return res.status(400).json({ error: 'Cannot delete a booked slot' });
-        }
+        if (!slot) return res.status(404).json({ error: 'Slot not found' });
+        if (slot.is_booked) return res.status(400).json({ error: 'Cannot delete a booked slot' });
 
-        await slot.deleteOne();
+        const { error } = await supabaseAdmin.from('slots').delete().eq('id', id);
+        if (error) return res.status(500).json({ error: 'Failed to delete slot', message: error.message });
+
         return res.json({ success: true });
     } catch (error) {
         console.error('Error deleting slot:', error);
@@ -104,8 +94,16 @@ router.delete('/:id', requireAuth(['vet']), async (req, res) => {
 router.get('/vet/:vetId', async (req, res) => {
     try {
         const { vetId } = req.params;
-        const slots = await SlotModel.find({ vetId, isBooked: false }).sort({ date: 1, time: 1 });
-        return res.json({ slots });
+        const { data: slots, error } = await supabaseAdmin
+            .from('slots')
+            .select('*')
+            .eq('vet_id', vetId)
+            .eq('is_booked', false)
+            .order('date', { ascending: true })
+            .order('time', { ascending: true });
+
+        if (error) return res.status(500).json({ error: 'Failed to fetch slots', message: error.message });
+        return res.json({ slots: slots || [] });
     } catch (error) {
         console.error('Error fetching vet slots:', error);
         return res.status(500).json({ error: 'Failed to fetch slots' });

@@ -5,9 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, LoginInput } from '../utils/validationSchemas'
 import { useAuthStore } from '../stores/authStore'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { authAPI } from '../services/api'
 
 const Login = () => {
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginInput>({
@@ -85,7 +84,6 @@ const Login = () => {
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
-      <Toaster position="top-center" />
       <div className="max-w-md w-full bg-white/90 backdrop-blur-md border border-neutral-200 rounded-2xl shadow-2xl p-8 card-3d relative z-10">
         <div className="text-center mb-8">
           <div

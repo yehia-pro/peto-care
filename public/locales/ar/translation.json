@@ -363,7 +363,7 @@
   "petRecords.errors.deleteFailed": "خطأ في حذف السجل",
   "petRecords.errors.connectionError": "حدث خطأ في الاتصال",
   "petRecords.troubleshoot.title": "💡 نصائح لحل المشكلة:",
-  "petRecords.troubleshoot.tip1": "تأكد من تشغيل السيرفر الخلفي على المنفذ 4000",
+  "petRecords.troubleshoot.tip1": "تأكد من تشغيل السيرفر الخلفي على المنفذ 7860",
   "petRecords.troubleshoot.tip2": "تحقق من اتصالك بالإنترنت",
   "petRecords.troubleshoot.tip3": "أعد تحميل الصفحة (F5)",
   "petRecords.troubleshoot.tip4": "تواصل مع الدعم الفني إذا استمرت المشكلة",

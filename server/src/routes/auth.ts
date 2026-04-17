@@ -1,911 +1,509 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { JsonDb } from '../utils/jsonDb'
-const memUsers: any[] = JsonDb.read('users.json', [])
-const saveUsers = () => JsonDb.write('users.json', memUsers)
-
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 import { validate } from '../middleware/validate'
 import { requireAuth } from '../middleware/auth'
-import MUserModel from '../models/User'
-import MPetStoreModel from '../models/PetStore'
-import { sendEmail } from '../services/email'
-import upload from '../config/cloudinary'
-import mongoose, { Schema, Model } from 'mongoose'
-import { AppointmentModel } from './appointments'
-import PetRecordModel from '../models/PetRecord'
+import { supabaseAdmin } from '../lib/supabase'
+import { vetsRepository } from '../repositories/vetsRepository'
 
 const router = Router()
 
-// Relaxed password validation - only requires 6+ characters
-const strongPassword = (p: string) => p.length >= 6
 const registerSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(6), // Changed from 8 to 6
+    password: z.string().min(6),
     fullName: z.string().min(2),
     role: z.enum(['user', 'vet', 'petstore']).optional(),
-    phone: z.string().optional(),
-    contact: z.string().optional(),
+    phone: z.string().optional()
   })
 })
 
-
-
-const adminRecipients = (process.env.ADMIN_NOTIFICATION_EMAILS || 'aymanyoussef219@gmail.com,yaheaeldesoky0@gmail.com')
-  .split(',')
-  .map(e => e.trim())
-  .filter(Boolean)
-
-router.post('/register', upload.fields([
-  { name: 'syndicateCardImage', maxCount: 1 },
-  { name: 'idFrontImage', maxCount: 1 },
-  { name: 'idBackImage', maxCount: 1 },
-  { name: 'commercialRegImage', maxCount: 1 },
-  { name: 'licenseImage', maxCount: 1 },
-]), validate(registerSchema), async (req, res) => {
-  if (!strongPassword(req.body.password)) {
-    return res.status(400).json({ error: 'weak_password', message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' })
-  }
-  // Prefer MongoDB (Mongoose) for user storage
-  try {
-    const existsMongo = await MUserModel.findOne({ email: req.body.email })
-    if (existsMongo) return res.status(409).json({ error: 'email_taken', message: 'عذراً، هذا البريد الإلكتروني مسجل مسبقاً.' })
-    const passwordHash = await bcrypt.hash(req.body.password, 10)
-    const userRole = req.body.role || 'user'
-    const files = (req as any).files || {}
-    const syndicateCardImageUrl = files?.syndicateCardImage?.[0]?.path
-    const idFrontUrl = files?.idFrontImage?.[0]?.path
-    const idBackUrl = files?.idBackImage?.[0]?.path
-    const licenseImageUrl = files?.licenseImage?.[0]?.path
-    const commercialRegImageUrl = files?.commercialRegImage?.[0]?.path || licenseImageUrl
-    if (userRole === 'vet') {
-      if (!syndicateCardImageUrl || !idFrontUrl || !idBackUrl) {
-        return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صور كارنيه النقابة والهوية للطبيب' })
-      }
-    }
-    if (userRole === 'petstore') {
-      if (!commercialRegImageUrl) {
-        return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صورة السجل التجاري للمتجر' })
-      }
-      if (!idFrontUrl || !idBackUrl) {
-        return res.status(400).json({ error: 'missing_images', message: 'يجب رفع صورة وجه وظهر بطاقة الهوية للمتجر' })
-      }
-    }
-
-    // Build the contact fallback JSON from the form data fields (so that auto-heal in admin.ts can recreate stores)
-    let contactStr = req.body.contact || '';
-    if (userRole === 'petstore' || userRole === 'vet') {
-      try {
-        const contactObj = contactStr ? JSON.parse(contactStr) : {};
-        // Merge petstore/vet specific fields from the root body
-        const keys = ['storeType', 'description', 'phone', 'whatsapp', 'openingTime', 'closingTime', 'city', 'address', 'services', 'brands', 'storeName'];
-        keys.forEach(k => {
-            if (req.body[k] !== undefined) contactObj[k] = req.body[k];
-        });
-        contactStr = JSON.stringify(contactObj);
-      } catch (e) {
-        console.error('Failed to parse contact string', e);
-      }
-    }
-
-    const created = await MUserModel.create({
-      email: req.body.email,
-      passwordHash,
-      fullName: req.body.fullName,
-      role: userRole,
-      phone: req.body.phone,
-      contact: contactStr,
-      syndicateCardImageUrl,
-      idFrontUrl,
-      idBackUrl,
-
-      commercialRegImageUrl,
-      isApproved: false,
-    })
-    if (userRole === 'vet' || userRole === 'petstore') {
-      if (userRole === 'petstore') {
-        try {
-          const storeName = req.body.storeName || req.body.fullName
-          const servicesRaw = req.body.services
-          const services = Array.isArray(servicesRaw)
-            ? servicesRaw
-            : typeof servicesRaw === 'string' && servicesRaw
-              ? servicesRaw.split(',')
-                .map((s: string) => s.trim())
-                .filter(Boolean)
-              : []
-          const brandsRaw = req.body.brands
-          const brands = Array.isArray(brandsRaw)
-            ? brandsRaw
-            : typeof brandsRaw === 'string' && brandsRaw
-              ? brandsRaw.split(',')
-                .map((b: string) => b.trim())
-                .filter(Boolean)
-              : []
-          await MPetStoreModel.create({
-            userId: created._id.toString(),
-            storeName,
-            storeType: req.body.storeType,
-            description: req.body.description,
-            phone: req.body.phone,
-            whatsapp: req.body.whatsapp,
-            openingTime: req.body.openingTime,
-            closingTime: req.body.closingTime,
-            services,
-            brands,
-            city: req.body.city,
-            address: req.body.address,
-            commercialRegImageUrl: commercialRegImageUrl || '',
-            rating: 0
-          })
-        } catch (e) { console.error('Failed to create PetStore record:', e) }
-      }
-      try {
-        const subject = userRole === 'vet' ? 'تسجيل طبيب بيطري جديد' : 'تسجيل متجر جديد'
-        const html = `<div dir="rtl" style="font-family: Arial, sans-serif;">
-          <p>تم تسجيل طلب انضمام جديد (بانتظار الموافقة).</p>
-          <p>الاسم: ${req.body.fullName}</p>
-          <p>البريد الإلكتروني: ${req.body.email}</p>
-          <p>النوع: ${userRole === 'vet' ? 'طبيب' : 'متجر'}</p>
-        </div>`
-        Promise.all(adminRecipients.map(to => sendEmail(to, subject, html))).catch(() => {})
-      } catch (e) { }
-      const msg = 'تم التسجيل بنجاح، حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة من لوحة التحكم'
-      return res.status(201).json({ message: msg })
-    }
-    const token = jwt.sign({ id: created._id.toString(), role: created.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    res.setHeader('Set-Cookie', `token=${token}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=${7 * 24 * 3600}`)
-    return res.status(201).json({ token, user: { id: created._id.toString(), email: created.email, fullName: created.fullName, role: created.role } })
-  } catch (mongoErr) { }
-  const exists = memUsers.find(u => u.email === req.body.email)
-  if (exists) return res.status(409).json({ error: 'email_taken', message: 'عذراً، هذا البريد الإلكتروني مسجل مسبقاً.' })
-  const passwordHash = await bcrypt.hash(req.body.password, 10)
-  const userRole = req.body.role || 'user'
-  const id = Math.random().toString(36).slice(2)
-  const user = { id, email: req.body.email, passwordHash, fullName: req.body.fullName, role: userRole, phone: req.body.phone, contact: req.body.contact, isApproved: false }
-  memUsers.push(user)
-  saveUsers()
-  if (userRole === 'vet' || userRole === 'petstore') {
-    return res.status(201).json({ message: 'تم التسجيل بنجاح، حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة' })
-  }
-  const token = jwt.sign({ id: user.id, role: user.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-  res.setHeader('Set-Cookie', `token=${token}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=${7 * 24 * 3600}`)
-  return res.json({ token, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } })
-})
-
 const loginSchema = z.object({
-  body: z.object({ email: z.string().email(), password: z.string().min(6), captchaId: z.string().optional(), captchaAnswer: z.string().optional() })
-})
-
-const failedAttempts: { email: string, ip?: string, at: number }[] = []
-const captchaMap: Record<string, { q: string, a: string, email: string, expiresAt: number }> = {}
-const createCaptcha = (email: string) => {
-  const a = Math.floor(Math.random() * 9) + 1
-  const b = Math.floor(Math.random() * 9) + 1
-  const id = Math.random().toString(36).slice(2)
-  captchaMap[id] = { q: `${a} + ${b} = ?`, a: String(a + b), email, expiresAt: Date.now() + 10 * 60 * 1000 }
-  return { id, question: captchaMap[id].q }
-}
-
-router.post('/login', validate(loginSchema), async (req, res) => {
-  // Try MongoDB first
-  try {
-    const userDoc = await MUserModel.findOne({ email: req.body.email })
-    if (!userDoc) {
-      failedAttempts.push({ email: req.body.email, ip: req.ip, at: Date.now() })
-      const cap = createCaptcha(req.body.email)
-      return res.status(401).json({ error: 'user_not_found', message: 'هذا الحساب غير موجود', require_captcha: true, captcha_id: cap.id, captcha_question: cap.question })
-    }
-    if (userDoc.lockUntil && userDoc.lockUntil.getTime() > Date.now()) {
-      return res.status(423).json({ error: 'account_locked', until: userDoc.lockUntil.toISOString() })
-    }
-    const recentFails = failedAttempts.filter(f => f.email === req.body.email && Date.now() - f.at < 15 * 60 * 1000).length
-    if (recentFails >= 3) {
-      const c = captchaMap[req.body.captchaId || '']
-      if (!c || c.email !== req.body.email || c.expiresAt < Date.now() || c.a !== String(req.body.captchaAnswer || '')) {
-        const cap = createCaptcha(req.body.email)
-        return res.status(400).json({ error: 'captcha_required', message: 'رمز التحقق مطلوب أو غير صحيح', captcha_id: cap.id, captcha_question: cap.question })
-      }
-    }
-    const ok = await bcrypt.compare(req.body.password, userDoc.passwordHash)
-    if (!ok) {
-      failedAttempts.push({ email: req.body.email, ip: req.ip, at: Date.now() })
-      userDoc.failedLoginCount = (userDoc.failedLoginCount || 0) + 1
-      userDoc.lastFailedAt = new Date()
-      if (userDoc.failedLoginCount >= 5) {
-        userDoc.lockUntil = new Date(Date.now() + 10 * 60 * 1000)
-      }
-      await userDoc.save()
-      const delay = Math.min(2000 + (userDoc.failedLoginCount || 0) * 500, 5000)
-      await new Promise(r => setTimeout(r, delay))
-      const cap = createCaptcha(req.body.email)
-      return res.status(401).json({ error: 'incorrect_password', message: 'كلمة المرور غير صحيحة', require_captcha: true, captcha_id: cap.id, captcha_question: cap.question })
-    }
-    if ((userDoc.role === 'vet' || userDoc.role === 'petstore') && !userDoc.isApproved) {
-      return res.status(403).json({ error: 'account_pending_approval', message: 'حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة' })
-    }
-    userDoc.failedLoginCount = 0
-    userDoc.lockUntil = undefined
-    await userDoc.save()
-    const token = jwt.sign({ id: userDoc._id.toString(), role: userDoc.role, email: userDoc.email }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    res.setHeader('Set-Cookie', `token=${token}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=${7 * 24 * 3600}`)
-    return res.json({ token, user: { id: userDoc._id.toString(), email: userDoc.email, fullName: userDoc.fullName, role: userDoc.role } })
-  } catch (mongoErr) { }
-  const user = memUsers.find(u => u.email === req.body.email)
-  if (!user) {
-    failedAttempts.push({ email: req.body.email, ip: req.ip, at: Date.now() })
-    const cap = createCaptcha(req.body.email)
-    return res.status(401).json({ error: 'invalid_credentials', require_captcha: true, captcha_id: cap.id, captcha_question: cap.question })
-  }
-  const ok = await bcrypt.compare(req.body.password, user.passwordHash)
-  if (!ok) {
-    failedAttempts.push({ email: req.body.email, ip: req.ip, at: Date.now() })
-    const delay = Math.min(2000, 5000)
-    await new Promise(r => setTimeout(r, delay))
-    const cap = createCaptcha(req.body.email)
-    return res.status(401).json({ error: 'invalid_credentials', require_captcha: true, captcha_id: cap.id, captcha_question: cap.question })
-  }
-  if ((user.role === 'vet' || user.role === 'petstore') && !user.isApproved) {
-    return res.status(403).json({ error: 'account_pending_approval', message: 'حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة' })
-  }
-  const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-  res.setHeader('Set-Cookie', `token=${token}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=${7 * 24 * 3600}`)
-  return res.json({ token, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } })
-})
-
-// Refresh access token endpoint
-router.post('/refresh', async (req, res) => {
-  try {
-    const cookieToken = (req.cookies && req.cookies.token) || req.header('Authorization')?.replace('Bearer ', '')
-    if (!cookieToken) return res.status(401).json({ error: 'no_token', message: 'يرجى تسجيل الدخول' })
-
-    let payload: any = null
-    try {
-      payload = jwt.verify(cookieToken, String(process.env.JWT_SECRET)) as any
-    } catch (e) {
-      // If token verification failed (expired/invalid), try decode to obtain user id
-      payload = jwt.decode(cookieToken) as any
-      if (!payload || (!payload.id && !payload.userId)) return res.status(401).json({ error: 'invalid_token' })
-    }
-
-    const userId = payload.id || payload.userId
-    let userDoc: any = null
-    try {
-      if (MUserModel) {
-        userDoc = await MUserModel.findById(userId)
-      }
-    } catch (e) { }
-
-    if (!userDoc) {
-      // try memory users
-      const mem = memUsers.find(u => u.id === userId)
-      if (!mem) return res.status(401).json({ error: 'user_not_found' })
-      userDoc = mem
-    }
-
-    const newToken = jwt.sign({ id: userDoc._id?.toString ? userDoc._id.toString() : userDoc.id, role: userDoc.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    res.setHeader('Set-Cookie', `token=${newToken}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=${7 * 24 * 3600}`)
-    return res.json({ token: newToken })
-  } catch (err) {
-    console.error('Refresh token error:', err)
-    return res.status(500).json({ error: 'server_error' })
-  }
-})
-
-router.post('/seed-demo-vet', async (_req, res) => {
-  const email = 'demo_vet@example.local'
-  let userDoc = await MUserModel.findOne({ email })
-  const placeholder = 'https://placehold.co/600x400'
-  if (!userDoc) {
-    const passwordHash = await bcrypt.hash('Demo@1234', 10)
-    userDoc = await MUserModel.create({
-      email,
-      passwordHash,
-      fullName: 'Demo Vet',
-      role: 'vet',
-      isApproved: true,
-      syndicateCardImageUrl: placeholder,
-      idFrontUrl: placeholder,
-      idBackUrl: placeholder
-    })
-  } else {
-    userDoc.isApproved = true
-    userDoc.passwordHash = await bcrypt.hash('Demo@1234', 10)
-    userDoc.syndicateCardImageUrl = userDoc.syndicateCardImageUrl || placeholder
-    userDoc.idFrontUrl = userDoc.idFrontUrl || placeholder
-    userDoc.idBackUrl = userDoc.idBackUrl || placeholder
-    userDoc.contact = JSON.stringify({ qualification: 'بكالوريوس الطب البيطري - جامعة القاهرة', experienceYears: 5, country: 'Egypt', specialization: 'General' })
-    await userDoc.save()
-  }
-
-  // Removing TypeORM logic
-
-  // Create demo user for appointments
-  const demoUserEmail = 'demo_user@example.local'
-  let demoUser = await MUserModel.findOne({ email: demoUserEmail })
-  if (!demoUser) {
-    const passwordHash = await bcrypt.hash('Demo@1234', 10)
-    demoUser = await MUserModel.create({
-      email: demoUserEmail,
-      passwordHash,
-      fullName: 'Demo Pet Owner',
-      role: 'user'
-    })
-  }
-
-  // Create demo appointments
-  const existingAppts = await AppointmentModel.find({ vetId: userDoc._id.toString() })
-  if (existingAppts.length === 0) {
-    await AppointmentModel.create([
-      {
-        userId: demoUser._id.toString(),
-        vetId: userDoc._id.toString(),
-        scheduledAt: new Date(Date.now() + 86400000), // Tomorrow
-        reason: 'فحص دوري',
-        status: 'confirmed',
-        notes: 'الكلب يعاني من قلة الشهية'
-      },
-      {
-        userId: demoUser._id.toString(),
-        vetId: userDoc._id.toString(),
-        scheduledAt: new Date(Date.now() - 86400000), // Yesterday
-        reason: 'تطعيم',
-        status: 'completed',
-        notes: 'تم إعطاء التطعيم بنجاح'
-      }
-    ])
-  }
-
-  // Create demo pet records
-  const existingRecords = await PetRecordModel.find({ userId: demoUser._id.toString() })
-  if (existingRecords.length === 0) {
-    await PetRecordModel.create([
-      {
-        userId: demoUser._id.toString(),
-        petName: 'Rex',
-        petType: 'كلب',
-        summary: 'كلب جيرمان شيبرد صحي',
-        history: 'تطعيمات كاملة',
-        medications: 'لا يوجد'
-      },
-      {
-        userId: demoUser._id.toString(),
-        petName: 'Bella',
-        petType: 'قطة',
-        summary: 'قطة سيامي',
-        history: 'حساسية موسمية',
-        medications: 'مضاد هيستامين عند الحاجة'
-      }
-    ])
-  }
-
-  try {
-    const subject = 'دخول طبيب تجريبي جديد'
-    const html = `<div dir="rtl" style="font-family: Arial, sans-serif;">
-        <p>تم دخول حساب طبيب تجريبي.</p>
-        <p>الاسم: ${userDoc.fullName}</p>
-        <p>البريد الإلكتروني: ${userDoc.email}</p>
-      </div>`
-    await Promise.all(adminRecipients.map(to => sendEmail(to, subject, html)))
-  } catch (e) {
-    console.error('Failed to send demo vet email notification:', e)
-  }
-  const token = jwt.sign({ id: userDoc._id.toString(), role: userDoc.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-  res.json({ token, user: { id: userDoc._id.toString(), email: userDoc.email, fullName: userDoc.fullName, role: userDoc.role } })
-})
-
-router.post('/seed-demo-store', async (_req, res) => {
-  const email = 'demo_store@example.local'
-  let userDoc = await MUserModel.findOne({ email })
-  const placeholder = 'https://placehold.co/600x400'
-  if (!userDoc) {
-    const passwordHash = await bcrypt.hash('Demo@1234', 10)
-    userDoc = await MUserModel.create({
-      email,
-      passwordHash,
-      fullName: 'متجر تجريبي',
-      role: 'petstore',
-      isApproved: true,
-      commercialRegImageUrl: placeholder,
-      idFrontUrl: placeholder,
-      idBackUrl: placeholder,
-      phone: '01000000000',
-      contact: JSON.stringify({ description: 'متجر تجريبي للتجربة.', brands: '', city: 'القاهرة', address: 'شارع التجربة 1' })
-    })
-    try {
-      await MPetStoreModel.create({
-        userId: userDoc._id.toString(),
-        storeName: 'متجر تجريبي',
-        storeType: 'comprehensive',
-        description: 'متجر تجريبي للتجربة. يعرض مجموعة متنوعة من مستلزمات الحيوانات الأليفة.',
-        phone: '01000000000',
-        whatsapp: '+201000000000',
-        city: 'القاهرة',
-        address: 'شارع التجربة 1',
-        openingTime: '09:00',
-        closingTime: '21:00',
-        services: ['مستلزمات الحيوانات', 'طعام الحيوانات'],
-        brands: ['Royal Canin', 'Purina'],
-        commercialRegImageUrl: placeholder,
-        rating: 4.5,
-        reviewCount: 12,
-        products: []
-      })
-    } catch (e) { console.error('seed-demo-store create error:', e) }
-  } else {
-    userDoc.isApproved = true
-    userDoc.passwordHash = await bcrypt.hash('Demo@1234', 10)
-    await userDoc.save()
-    try {
-      const existing = await MPetStoreModel.findOne({ userId: userDoc._id.toString() })
-      if (!existing) {
-        await MPetStoreModel.create({
-          userId: userDoc._id.toString(),
-          storeName: 'متجر تجريبي',
-          storeType: 'comprehensive',
-          description: 'متجر تجريبي للتجربة. يعرض مجموعة متنوعة من مستلزمات الحيوانات الأليفة.',
-          phone: '01000000000',
-          whatsapp: '+201000000000',
-          city: 'القاهرة',
-          address: 'شارع التجربة 1',
-          openingTime: '09:00',
-          closingTime: '21:00',
-          services: ['مستلزمات الحيوانات', 'طعام الحيوانات'],
-          brands: ['Royal Canin', 'Purina'],
-          commercialRegImageUrl: placeholder,
-          rating: 4.5,
-          reviewCount: 12,
-          products: []
-        })
-      } else {
-        // Update existing with new fields if missing
-        await MPetStoreModel.findOneAndUpdate(
-          { userId: userDoc._id.toString() },
-          { $set: {
-            storeType: existing.storeType || 'comprehensive',
-            phone: existing.phone || '01000000000',
-            openingTime: existing.openingTime || '09:00',
-            closingTime: existing.closingTime || '21:00',
-          }},
-          { new: true }
-        )
-      }
-    } catch (e) { console.error('seed-demo-store update error:', e) }
-  }
-  const token = jwt.sign({ id: userDoc._id.toString(), role: userDoc.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-  res.json({ token, user: { id: userDoc._id.toString(), email: userDoc.email, fullName: userDoc.fullName, role: userDoc.role } })
-})
-
-
-router.post('/seed-demo-user', async (_req, res) => {
-  const email = 'demo_user@example.local'
-
-  // Try MongoDB first
-  try {
-    let userDoc = await MUserModel.findOne({ email })
-    if (!userDoc) {
-      const passwordHash = await bcrypt.hash('Demo@1234', 10)
-      userDoc = await MUserModel.create({
-        email,
-        passwordHash,
-        fullName: 'Demo User',
-        role: 'user',
-        isApproved: true,
-        phone: '01000000000'
-      })
-    } else {
-      userDoc.passwordHash = await bcrypt.hash('Demo@1234', 10)
-      userDoc.isApproved = true
-      await userDoc.save()
-    }
-    const token = jwt.sign({ id: userDoc._id.toString(), role: userDoc.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    return res.json({ token, user: { id: userDoc._id.toString(), email: userDoc.email, fullName: userDoc.fullName, role: userDoc.role } })
-  } catch (e) { }
-
-  // Fallback to JSON DB
-  const exists = memUsers.find(u => u.email === email)
-  if (!exists) {
-    const passwordHash = await bcrypt.hash('Demo@1234', 10)
-    const id = Math.random().toString(36).slice(2)
-    const user = { id, email, passwordHash, fullName: 'Demo User', role: 'user', isApproved: true, phone: '01000000000' }
-    memUsers.push(user)
-    saveUsers()
-    const token = jwt.sign({ id: user.id, role: user.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    return res.json({ token, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } })
-  } else {
-    exists.passwordHash = await bcrypt.hash('Demo@1234', 10)
-    exists.isApproved = true
-    saveUsers()
-    const token = jwt.sign({ id: exists.id, role: exists.role }, String(process.env.JWT_SECRET), { expiresIn: '7d' })
-    return res.json({ token, user: { id: exists.id, email: exists.email, fullName: exists.fullName, role: exists.role } })
-  }
-})
-
-router.get('/test-email', async (_req, res) => {
-  const subject = 'إيميل تجريبي'
-  const html = '<div dir="rtl" style="font-family: Arial, sans-serif;">هذا إيميل تجريبي للتأكد من عمل الإرسال.</div>'
-  await Promise.all(adminRecipients.map(r => sendEmail(r, subject, html).catch(() => { })))
-  res.json({ success: true })
-})
-
-
-router.get('/profile', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
-  try {
-    const userDoc = await MUserModel.findById((req as any).user.id)
-    if (!userDoc) return res.status(404).json({ error: 'not_found', message: 'المستخدم غير موجود' })
-    const AppointmentModel: Model<any> = mongoose.models.Appointment || mongoose.model('Appointment', new Schema({
-      userId: { type: String, required: true, index: true },
-      vetId: { type: String, required: true, index: true },
-      scheduledAt: { type: Date, required: true },
-      reason: { type: String, required: true },
-      notes: { type: String },
-      status: { type: String, enum: ['pending', 'confirmed', 'completed', 'cancelled'], default: 'pending' },
-      createdAt: { type: Date, default: Date.now }
-    }))
-
-    const [appointments, records, petStore] = await Promise.all([
-      AppointmentModel.find({ userId: userDoc._id.toString() }).sort({ scheduledAt: -1 }).lean(),
-      PetRecordModel.find({ userId: userDoc._id.toString() }).sort({ createdAt: -1 }).lean(),
-      userDoc.role === 'petstore' ? MPetStoreModel.findOne({ userId: userDoc._id.toString() }).lean() : Promise.resolve(null)
-    ])
-    return res.json({
-      id: userDoc._id.toString(),
-      email: userDoc.email,
-      fullName: userDoc.fullName,
-      role: userDoc.role,
-      phone: userDoc.phone,
-      birthDate: userDoc.birthDate,
-      avatarUrl: userDoc.avatarUrl,
-      syndicateCardImageUrl: userDoc.syndicateCardImageUrl,
-      idFrontUrl: userDoc.idFrontUrl,
-      idBackUrl: userDoc.idBackUrl,
-      contact: userDoc.contact,
-      petStore,
-      appointments,
-      records
-    })
-  } catch (_) { }
-  const user = memUsers.find(u => u.id === (req as any).user.id)
-  if (!user) return res.status(404).json({ error: 'not_found' })
-  return res.json({ id: user.id, email: user.email, fullName: user.fullName, role: user.role })
+  body: z.object({
+    email: z.string().email(),
+    password: z.string().min(6)
+  })
 })
 
 const updateProfileSchema = z.object({
   body: z.object({
     fullName: z.string().max(100).optional(),
-    email: z.string().email().optional(),
-    phone: z.string().optional(), // Relaxed validation to avoid blocking local numbers
-    birthDate: z.string().optional(),
-    avatarUrl: z.string().optional(),
-    syndicateCardImageUrl: z.string().optional(),
-    commercialRegImageUrl: z.string().optional(),
-    idFrontUrl: z.string().optional(),
-    idBackUrl: z.string().optional(),
-    // PetStore specific
-    storeName: z.string().optional(),
-    description: z.string().optional(),
-    brands: z.string().optional(),
-    city: z.string().optional(),
-    address: z.string().optional(),
-    // Vet specific (stored in contact)
-    specialization: z.string().optional(),
-    experienceYears: z.number().optional(),
-    country: z.string().optional(),
-    qualification: z.string().optional(),
-    consultationFee: z.number().optional(),
-    discountedFee: z.number().optional(),
-    discountExpiresAt: z.string().optional(),
-    clinicAddress: z.string().optional(),
-    governorate: z.string().optional(),
-    phoneNumbers: z.array(z.object({
-      number: z.string(),
-      label: z.string()
-    })).optional(),
+    phone: z.string().optional(),
+    avatarUrl: z.string().optional()
+  })
+})
+
+const toProfileRole = (role?: 'user' | 'vet' | 'petstore') => {
+  if (role === 'vet') return 'vet'
+  if (role === 'petstore') return 'store_owner'
+  return 'customer'
+}
+
+const toLegacyRole = (role?: string | null): 'user' | 'vet' | 'admin' | 'petstore' => {
+  if (role === 'vet') return 'vet'
+  if (role === 'admin') return 'admin'
+  if (role === 'store_owner') return 'petstore'
+  return 'user'
+}
+
+router.post('/register', validate(registerSchema), async (req, res) => {
+  const { email, password, fullName, phone, role } = req.body
+
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName }
+  })
+
+  if (error || !data.user) {
+    return res.status(400).json({ error: 'register_failed', message: error?.message || 'فشل إنشاء الحساب' })
+  }
+
+  const profileRole = toProfileRole(role)
+  const needsApproval = profileRole === 'vet' || profileRole === 'store_owner'
+
+  const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+    id: data.user.id,
+    role: profileRole,
+    full_name: fullName,
+    phone: phone || null,
+    metadata: needsApproval ? { approval_status: 'pending' } : {}
+  })
+
+  if (profileError) {
+    await supabaseAdmin.auth.admin.deleteUser(data.user.id)
+    return res.status(400).json({ error: 'profile_create_failed', message: profileError.message })
+  }
+
+  if (needsApproval) {
+    return res.status(201).json({
+      pendingApproval: true,
+      message: 'تم استلام طلبك. سيتم إشعارك بعد مراجعة الإدارة.',
+      user: {
+        id: data.user.id,
+        email,
+        fullName,
+        role: toLegacyRole(profileRole)
+      }
+    })
+  }
+
+  const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({ email, password })
+  if (signInError || !signInData.session) {
+    await supabaseAdmin.auth.admin.deleteUser(data.user.id)
+    return res.status(400).json({ error: 'login_after_register_failed', message: signInError?.message || 'فشل تسجيل الدخول' })
+  }
+
+  return res.status(201).json({
+    token: signInData.session.access_token,
+    user: {
+      id: data.user.id,
+      email,
+      fullName,
+      role: toLegacyRole(profileRole)
+    }
+  })
+})
+
+router.post('/login', validate(loginSchema), async (req, res) => {
+  const { email, password } = req.body
+  const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password })
+
+  if (error || !data.user || !data.session) {
+    return res.status(401).json({ error: 'invalid_credentials', message: 'بيانات الدخول غير صحيحة' })
+  }
+
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('role, full_name, metadata')
+    .eq('id', data.user.id)
+    .maybeSingle()
+
+  const meta = (profile?.metadata || {}) as Record<string, unknown>
+  const pendingApproval = meta.approval_status === 'pending'
+  const pr = profile?.role
+  if ((pr === 'vet' || pr === 'store_owner') && pendingApproval) {
+    return res.status(403).json({
+      error: 'account_pending_approval',
+      message: 'حسابك قيد المراجعة من قبل الإدارة.'
+    })
+  }
+
+  return res.json({
+    token: data.session.access_token,
+    user: {
+      id: data.user.id,
+      email: data.user.email,
+      fullName: profile?.full_name || data.user.user_metadata?.full_name || '',
+      role: toLegacyRole(profile?.role)
+    }
+  })
+})
+
+router.post('/refresh', async (_req, res) => {
+  return res.status(410).json({
+    error: 'refresh_removed',
+    message: 'Supabase manages session refresh on the client'
+  })
+})
+
+router.get('/profile', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
+  const userId = (req as any).user.id
+  const { data: profile, error } = await supabaseAdmin
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error || !profile) {
+    return res.status(404).json({ error: 'not_found', message: 'المستخدم غير موجود' })
+  }
+
+    return res.json({
+    id: userId,
+    email: (req as any).user.email,
+    fullName: profile.full_name || '',
+    role: toLegacyRole(profile.role),
+    phone: profile.phone || null,
+    avatarUrl: profile.avatar_url || null,
+    country: profile.country || null,
+    metadata: profile.metadata || {}
   })
 })
 
 router.put('/profile', requireAuth(['user', 'vet', 'admin', 'petstore']), validate(updateProfileSchema), async (req, res) => {
-  try {
-    const userDoc = await MUserModel.findById((req as any).user.id)
-    if (!userDoc) return res.status(404).json({ error: 'not_found' })
+  const userId = (req as any).user.id
+  const updates: Record<string, any> = { updated_at: new Date().toISOString() }
 
-    if (req.body.email && req.body.email !== userDoc.email) {
-      const exists = await MUserModel.findOne({ email: req.body.email })
-      if (exists) return res.status(409).json({ error: 'email_taken', message: 'عذراً، هذا البريد الإلكتروني مسجل مسبقاً.' })
-      userDoc.email = req.body.email
-    }
+  if (req.body.fullName !== undefined) updates.full_name = req.body.fullName
+  if (req.body.phone !== undefined) updates.phone = req.body.phone
+  if (req.body.avatarUrl !== undefined) updates.avatar_url = req.body.avatarUrl
 
-    if (req.body.fullName) userDoc.fullName = req.body.fullName
-    if (req.body.phone) userDoc.phone = req.body.phone
-    if (req.body.birthDate) userDoc.birthDate = req.body.birthDate
-    if (req.body.avatarUrl) userDoc.avatarUrl = req.body.avatarUrl
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select('*')
+    .single()
 
-    // Update Vet specific data
-    if ((req as any).user.role === 'vet') {
-      if (req.body.syndicateCardImageUrl) userDoc.syndicateCardImageUrl = req.body.syndicateCardImageUrl
-      if (req.body.idFrontUrl) userDoc.idFrontUrl = req.body.idFrontUrl
-      if (req.body.idBackUrl) userDoc.idBackUrl = req.body.idBackUrl
-
-      // Update contact info (JSON)
-      let contact: any = {}
-      try { contact = JSON.parse(userDoc.contact || '{}') } catch (e) { }
-
-      if (req.body.specialization) contact.specialization = req.body.specialization
-      if (req.body.experienceYears) contact.experienceYears = req.body.experienceYears
-      if (req.body.country) contact.country = req.body.country
-      if (req.body.qualification) contact.qualification = req.body.qualification
-      if (req.body.consultationFee !== undefined) contact.consultationFee = req.body.consultationFee
-      if (req.body.discountedFee !== undefined) contact.discountedFee = req.body.discountedFee
-      if (req.body.discountExpiresAt !== undefined) contact.discountExpiresAt = req.body.discountExpiresAt
-      if (req.body.clinicAddress) contact.clinicAddress = req.body.clinicAddress
-      if (req.body.governorate) contact.governorate = req.body.governorate
-      if (req.body.phoneNumbers !== undefined) contact.phoneNumbers = req.body.phoneNumbers
-
-      userDoc.contact = JSON.stringify(contact)
-    }
-
-    // Update PetStore specific data
-    if ((req as any).user.role === 'petstore') {
-      if (req.body.commercialRegImageUrl) userDoc.commercialRegImageUrl = req.body.commercialRegImageUrl
-
-      // Update PetStore model
-      let store = await MPetStoreModel.findOne({ userId: userDoc._id.toString() })
-      if (!store) {
-        store = new MPetStoreModel({ userId: userDoc._id.toString() })
-      }
-
-      if (req.body.storeName) store.storeName = req.body.storeName
-      if (req.body.description) store.description = req.body.description
-      if (req.body.brands) store.brands = req.body.brands
-      if (req.body.city) store.city = req.body.city
-      if (req.body.address) store.address = req.body.address
-      if (req.body.commercialRegImageUrl) store.commercialRegImageUrl = req.body.commercialRegImageUrl
-
-      await store.save()
-    }
-
-    await userDoc.save();
-
-    // Return the updated user object
-    const updatedUser = {
-      id: userDoc._id.toString(),
-      email: userDoc.email,
-      fullName: userDoc.fullName,
-      role: userDoc.role,
-      phone: userDoc.phone,
-      birthDate: userDoc.birthDate,
-      avatarUrl: userDoc.avatarUrl,
-      // Include any other relevant fields
-      ...(userDoc.role === 'vet' ? { contact: userDoc.contact } : {}),
-      ...(userDoc.role === 'petstore' ? {
-        storeName: req.body.storeName,
-        description: req.body.description,
-        address: req.body.address,
-        city: req.body.city
-      } : {})
-    };
-
-    return res.json(updatedUser);
-  } catch (err) {
-    console.error('Error in profile update:', err);
-    return res.status(500).json({ error: 'server_error', message: 'حدث خطأ أثناء تحديث البيانات' });
+  if (error) {
+    return res.status(400).json({ error: 'profile_update_failed', message: error.message })
   }
-} // Ending the route here, removing the confusing fallbacks which were likely causing issues
-);
 
-// Separate TypeORM profile update if needed, but for now MongoDB is primary
-// (Removing the old fallback code that followed)
+  return res.json({
+    id: userId,
+    email: (req as any).user.email,
+    fullName: data.full_name || '',
+    role: toLegacyRole(data.role),
+    phone: data.phone || null,
+    avatarUrl: data.avatar_url || null
+  })
+})
 
+router.patch('/profile/image', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
+  const userId = (req as any).user.id
+  const avatarUrl = req.body?.avatarUrl
+  if (!avatarUrl) return res.status(400).json({ error: 'no_image_provided' })
+
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  if (error) return res.status(400).json({ error: 'profile_image_update_failed', message: error.message })
+
+  return res.json({ success: true, avatarUrl, message: 'تم تحديث صورة الملف الشخصي بنجاح' })
+})
 
 router.delete('/me', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
-  try {
-    const userDoc = await MUserModel.findById((req as any).user.id)
-    if (!userDoc) return res.status(404).json({ error: 'not_found', message: 'المستخدم غير موجود' })
-    await userDoc.deleteOne()
-    res.setHeader('Set-Cookie', `token=; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=0`)
-    return res.json({ success: true })
-  } catch (_) { }
-  const idx = memUsers.findIndex(u => u.id === (req as any).user.id)
-  if (idx === -1) return res.status(404).json({ error: 'not_found' })
-  memUsers.splice(idx, 1)
-  res.setHeader('Set-Cookie', `token=; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; Max-Age=0`)
+  const userId = (req as any).user.id
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
+  if (error) return res.status(400).json({ error: 'delete_user_failed', message: error.message })
   return res.json({ success: true })
 })
 
-// Upload profile image
-router.patch('/profile/image', requireAuth(['user', 'vet', 'admin', 'petstore']), upload.single('image'), async (req, res) => {
-  try {
-    const userDoc = await MUserModel.findById((req as any).user.id)
-    if (!userDoc) return res.status(404).json({ error: 'not_found' })
-
-    const file = (req as any).file
-    if (!file || !file.path) {
-      return res.status(400).json({ error: 'no_image_provided' })
-    }
-
-    // Update avatar URL with Cloudinary URL
-    userDoc.avatarUrl = file.path
-    await userDoc.save()
-
-    return res.json({
-      success: true,
-      avatarUrl: file.path,
-      message: 'تم تحديث صورة الملف الشخصي بنجاح'
-    })
-  } catch (error) {
-    console.error('Error uploading profile image:', error)
-    return res.status(500).json({ error: 'server_error' })
-  }
-})
-
-// Get user statistics
-router.get('/profile/statistics', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
-  try {
-    const userId = (req as any).user.id
-    const role = (req as any).user.role
-
-    const stats: any = {
-      role,
-      totalAppointments: 0,
-      upcomingAppointments: 0,
-      completedAppointments: 0,
-      pendingAppointments: 0,
-      totalPets: 0,
-      totalReminders: 0,
-      upcomingReminders: 0
-    }
-
-    // Get appointments based on role
-    if (role === 'user') {
-      const appointments = await AppointmentModel.find({ userId }).lean()
-      stats.totalAppointments = appointments.length
-      stats.upcomingAppointments = appointments.filter(a =>
-        a.status !== 'completed' && a.status !== 'cancelled' && new Date(a.scheduledAt) > new Date()
-      ).length
-      stats.completedAppointments = appointments.filter(a => a.status === 'completed').length
-      stats.pendingAppointments = appointments.filter(a => a.status === 'pending').length
-
-      // Get pet records
-      const pets = await PetRecordModel.find({ userId }).lean()
-      stats.totalPets = pets.length
-
-      // Get reminders
-      const ReminderModel = mongoose.models.Reminder || mongoose.model('Reminder', new Schema({
-        userId: { type: String, required: true },
-        dueDate: { type: Date, required: true },
-        sent: { type: Boolean, default: false }
-      }))
-      const reminders = await ReminderModel.find({ userId }).lean()
-      stats.totalReminders = reminders.length
-      stats.upcomingReminders = reminders.filter((r: any) =>
-        new Date(r.dueDate) > new Date() && !r.sent
-      ).length
-
-    } else if (role === 'vet') {
-      const appointments = await AppointmentModel.find({ vetId: userId }).lean()
-      stats.totalAppointments = appointments.length
-      stats.upcomingAppointments = appointments.filter(a =>
-        a.status !== 'completed' && a.status !== 'cancelled' && new Date(a.scheduledAt) > new Date()
-      ).length
-      stats.completedAppointments = appointments.filter(a => a.status === 'completed').length
-      stats.pendingAppointments = appointments.filter(a => a.status === 'pending').length
-
-      // Calculate today's appointments
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-
-      stats.todayAppointments = appointments.filter(a => {
-        const apptDate = new Date(a.scheduledAt)
-        return apptDate >= today && apptDate < tomorrow
-      }).length
-
-      // Calculate this month's appointments
-      const thisMonth = new Date()
-      thisMonth.setDate(1)
-      thisMonth.setHours(0, 0, 0, 0)
-
-      stats.thisMonthAppointments = appointments.filter(a => {
-        const apptDate = new Date(a.scheduledAt)
-        return apptDate >= thisMonth
-      }).length
-
-    } else if (role === 'petstore') {
-      // Get store info
-      const store = await MPetStoreModel.findOne({ userId }).lean() as any
-      if (store) {
-        stats.storeName = store.storeName
-        stats.totalProducts = store.products?.length || 0
-        stats.rating = store.rating || 0
-      }
-    }
-
-    return res.json({ statistics: stats })
-  } catch (error) {
-    console.error('Error fetching statistics:', error)
-    return res.status(500).json({ error: 'server_error' })
-  }
-})
-
-// Forgot Password - Send reset email
 router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body
+  const email = req.body?.email
   if (!email) return res.status(400).json({ error: 'email_required', message: 'يرجى إدخال البريد الإلكتروني' })
 
-  try {
-    // Try MongoDB first
-    const userDoc = await MUserModel.findOne({ email })
-    if (!userDoc) {
-      // Don't reveal if email exists or not for security
+  const redirectTo = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password`
+  const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo })
+  if (error) return res.status(400).json({ error: 'reset_email_failed', message: error.message })
+
       return res.json({ success: true, message: 'إذا كان البريد الإلكتروني مسجلاً، سيتم إرسال رابط إعادة التعيين' })
+})
+
+router.post('/reset-password', async (req, res) => {
+  return res.status(410).json({
+    error: 'reset_via_supabase',
+    message: 'تغيير كلمة المرور يتم عبر رابط Supabase المرسل للبريد'
+  })
+})
+
+router.post('/seed-demo-vet', async (_req, res) => {
+  return res.status(410).json({ error: 'removed_in_hard_cutover' })
+})
+
+router.post('/seed-demo-store', async (_req, res) => {
+  return res.status(410).json({ error: 'removed_in_hard_cutover' })
+})
+
+router.post('/seed-demo-user', async (_req, res) => {
+  return res.status(410).json({ error: 'removed_in_hard_cutover' })
+})
+
+const uploadsBase = path.join(__dirname, '..', '..', 'uploads')
+const ensureUploadsDir = () => {
+  if (!fs.existsSync(uploadsBase)) fs.mkdirSync(uploadsBase, { recursive: true })
+}
+
+const diskStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    ensureUploadsDir()
+    cb(null, uploadsBase)
+  },
+  filename: (_req, file, cb) => cb(null, `${Date.now()}-${String(file.originalname).replace(/[^\w.\-]/g, '_')}`)
+})
+
+const petstoreRegisterUpload = multer({
+  storage: diskStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok =
+      /image\/(jpeg|png|webp|gif|heic|heif)/i.test(file.mimetype) ||
+      /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.originalname)
+    if (ok) cb(null, true)
+    else cb(new Error('invalid_image_type'))
+  }
+}).fields([
+  { name: 'commercialRegImage', maxCount: 1 },
+  { name: 'idFrontImage', maxCount: 1 },
+  { name: 'idBackImage', maxCount: 1 }
+])
+
+const vetRegisterUpload = multer({
+  storage: diskStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok =
+      ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype) ||
+      /\.(pdf|jpe?g|png|webp)$/i.test(file.originalname)
+    if (ok) cb(null, true)
+    else cb(new Error('invalid_vet_file_type'))
+  }
+}).fields([
+  { name: 'syndicateCardImage', maxCount: 1 },
+  { name: 'idFrontImage', maxCount: 1 },
+  { name: 'idBackImage', maxCount: 1 }
+])
+
+router.post('/register-store', (req, res, next) => {
+  petstoreRegisterUpload(req, res, (err: unknown) => {
+    if (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return res.status(400).json({
+        error: 'upload_failed',
+        message: msg === 'invalid_image_type' ? 'نوع الصورة غير مسموح' : msg
+      })
+    }
+    next()
+  })
+}, async (req, res) => {
+  try {
+    const b = req.body as Record<string, string | undefined>
+    const email = String(b.email || '')
+      .trim()
+      .toLowerCase()
+    const password = String(b.password || '')
+    const fullName = String(b.fullName || b.storeName || '').trim()
+    const phone = b.phone ? String(b.phone) : undefined
+
+    if (!email || !password || password.length < 6 || !fullName) {
+      return res.status(400).json({ error: 'validation_error', message: 'بيانات التسجيل غير مكتملة' })
     }
 
-    // Generate reset token (1 hour expiry)
-    const resetToken = jwt.sign({ id: userDoc._id.toString(), email: userDoc.email, purpose: 'password_reset' }, String(process.env.JWT_SECRET), { expiresIn: '1h' })
+    const files = (req as any).files as Record<string, { filename: string }[]> | undefined
+    const urlOf = (field: string) => {
+      const f = files?.[field]?.[0]
+      return f ? `/uploads/${f.filename}` : ''
+    }
+    const commercialRegImageUrl = urlOf('commercialRegImage')
+    const idFrontUrl = urlOf('idFrontImage')
+    const idBackUrl = urlOf('idBackImage')
+    if (!commercialRegImageUrl || !idFrontUrl || !idBackUrl) {
+      return res.status(400).json({
+        error: 'documents_required',
+        message: 'يجب رفع السجل التجاري وصور الهوية'
+      })
+    }
 
-    // Send email
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`
-    const subject = 'إعادة تعيين كلمة المرور'
-    const html = `<div dir="rtl" style="font-family: Arial, sans-serif;">
-      <h2>مرحباً ${userDoc.fullName}</h2>
-      <p>تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك.</p>
-      <p>إذا لم تطلب ذلك، يرجى تجاهل هذا البريد.</p>
-      <p>لإعادة تعيين كلمة المرور، اضغط على الرابط التالي:</p>
-      <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">إعادة تعيين كلمة المرور</a>
-      <p style="margin-top: 20px; color: #666; font-size: 12px;">هذا الرابط صالح لمدة ساعة واحدة فقط.</p>
-    </div>`
-
-    await sendEmail(userDoc.email, subject, html)
-    return res.json({ success: true, message: 'تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني' })
-  } catch (error: any) {
-    console.log("FORGOT PASSWORD CONTROLLER ERROR:", error);
-    console.error('Forgot password error:', error)
-    return res.status(500).json({ 
-      error: 'server_error', 
-      message: 'فشل إرسال البريد الإلكتروني. يرجى التحقق من إعدادات خادم البريد (SMTP) والمحاولة لاحقاً.',
-      details: error.message || 'Unknown error'
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName }
     })
+    if (error || !data.user) {
+      return res.status(400).json({ error: 'register_failed', message: error?.message || 'فشل إنشاء الحساب' })
+    }
+
+    const services =
+      typeof b.services === 'string' && b.services
+        ? b.services.split(',').map((s) => s.trim()).filter(Boolean)
+        : []
+    const brands =
+      typeof b.brands === 'string' && b.brands ? b.brands.split(',').map((s) => s.trim()).filter(Boolean) : []
+
+    const metadata: Record<string, unknown> = {
+      approval_status: 'pending',
+      commercialRegImageUrl,
+      idFrontUrl,
+      idBackUrl,
+      storeType: b.storeType,
+      description: b.description,
+      address: b.address,
+      city: b.city,
+      country: b.country,
+      whatsapp: b.whatsapp,
+      openingTime: b.openingTime,
+      closingTime: b.closingTime,
+      services,
+      brands
+    }
+
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      id: data.user.id,
+      role: 'store_owner',
+      full_name: fullName,
+      phone: phone || null,
+      metadata
+    })
+
+    if (profileError) {
+      await supabaseAdmin.auth.admin.deleteUser(data.user.id)
+      return res.status(400).json({ error: 'profile_create_failed', message: profileError.message })
+    }
+
+    return res.status(201).json({
+      pendingApproval: true,
+      message: 'تم استلام طلبك. سيتم إشعارك بعد مراجعة الإدارة.',
+      user: {
+        id: data.user.id,
+        email,
+        fullName,
+        role: 'petstore'
+      }
+    })
+  } catch (e: any) {
+    console.error(e)
+    res.status(500).json({ error: 'server_error', message: e.message || 'خطأ في الخادم' })
   }
 })
 
-// Reset Password - Update password with token
-router.post('/reset-password', async (req, res) => {
-  const { token, newPassword } = req.body
-  if (!token || !newPassword) {
-    return res.status(400).json({ error: 'missing_fields', message: 'يرجى إدخال جميع الحقول المطلوبة' })
-  }
-
-  if (!strongPassword(newPassword)) {
-    return res.status(400).json({ error: 'weak_password', message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' })
-  }
-
+router.post('/register-vet', (req, res, next) => {
+  vetRegisterUpload(req, res, (err: unknown) => {
+    if (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return res.status(400).json({
+        error: 'upload_failed',
+        message: msg === 'invalid_vet_file_type' ? 'نوع الملف غير مسموح (PDF أو صورة)' : msg
+      })
+    }
+    next()
+  })
+}, async (req, res) => {
   try {
-    // Verify token
-    const payload = jwt.verify(token, String(process.env.JWT_SECRET)) as any
-    if (payload.purpose !== 'password_reset') {
-      return res.status(400).json({ error: 'invalid_token', message: 'رابط غير صالح' })
+    const b = req.body as Record<string, string | undefined>
+    const email = String(b.email || '')
+      .trim()
+      .toLowerCase()
+    const password = String(b.password || '')
+    const fullName = String(b.fullName || '').trim()
+    const phone = b.phone ? String(b.phone) : undefined
+
+    if (!email || !password || password.length < 6 || !fullName) {
+      return res.status(400).json({ error: 'validation_error', message: 'بيانات التسجيل غير مكتملة' })
     }
 
-    // Find user and update password
-    const userDoc = await MUserModel.findById(payload.id)
-    if (!userDoc) {
-      return res.status(404).json({ error: 'user_not_found', message: 'المستخدم غير موجود' })
+    const files = (req as any).files as Record<string, { filename: string }[]> | undefined
+    const urlOf = (field: string) => {
+      const f = files?.[field]?.[0]
+      return f ? `/uploads/${f.filename}` : ''
+    }
+    const syndicateCardImageUrl = urlOf('syndicateCardImage')
+    const idFrontUrl = urlOf('idFrontImage')
+    const idBackUrl = urlOf('idBackImage')
+    if (!syndicateCardImageUrl || !idFrontUrl || !idBackUrl) {
+      return res.status(400).json({
+        error: 'documents_required',
+        message: 'يجب رفع كارنيه النقابة وصور الهوية'
+      })
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10)
-    userDoc.passwordHash = passwordHash
-    await userDoc.save()
-
-    return res.json({ success: true, message: 'تم تغيير كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول' })
-  } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(400).json({ error: 'token_expired', message: 'انتهت صلاحية الرابط، يرجى طلب رابط جديد' })
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName }
+    })
+    if (error || !data.user) {
+      return res.status(400).json({ error: 'register_failed', message: error?.message || 'فشل إنشاء الحساب' })
     }
-    console.error('Reset password error:', error)
-    return res.status(500).json({ error: 'server_error', message: 'حدث خطأ، يرجى المحاولة لاحقاً' })
+
+    const userId = data.user.id
+    const vetPayload = {
+      clinicName: fullName,
+      licenseNumber: `PENDING-${userId.slice(0, 8)}`,
+      specialization: String(b.specialization || 'General'),
+      yearsOfExperience: parseInt(String(b.experienceYears || '0'), 10) || 0,
+      education: String(b.qualification || ''),
+      country: String(b.country || 'Egypt')
+    }
+
+    try {
+      await vetsRepository.upsertVetRow(userId, vetPayload, false)
+    } catch (ve: any) {
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return res.status(400).json({ error: 'vet_row_failed', message: ve.message || 'فشل حفظ بيانات الطبيب' })
+    }
+
+    const metadata: Record<string, unknown> = {
+      approval_status: 'pending',
+      syndicateCardImageUrl,
+      idFrontUrl,
+      idBackUrl
+    }
+
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      id: userId,
+      role: 'vet',
+      full_name: fullName,
+      phone: phone || null,
+      country: vetPayload.country,
+      metadata
+    })
+
+    if (profileError) {
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return res.status(400).json({ error: 'profile_create_failed', message: profileError.message })
+    }
+
+    return res.status(201).json({
+      pendingApproval: true,
+      message: 'تم استلام طلبك. سيتم إشعارك بعد مراجعة الإدارة.',
+      user: {
+        id: userId,
+        email,
+        fullName,
+        role: 'vet'
+      }
+    })
+  } catch (e: any) {
+    console.error(e)
+    res.status(500).json({ error: 'server_error', message: e.message || 'خطأ في الخادم' })
   }
 })
 

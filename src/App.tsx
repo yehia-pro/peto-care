@@ -85,7 +85,12 @@ function App() {
   const [showSplash, setShowSplash] = useState(true)
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <ErrorBoundary>
         <LanguageProvider>

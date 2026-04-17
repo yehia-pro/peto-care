@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, CheckCircle, Stethoscope, Store } from 'lucide-react'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
-import { authAPI } from '../services/api'
 
 const Register = () => {
-  const { setUser } = useAuthStore()
+  const { register: registerUser } = useAuthStore()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -43,21 +42,9 @@ const Register = () => {
 
     setIsSubmitting(true)
     try {
-      const form = new FormData()
-      form.append('email', email)
-      form.append('password', password)
-      form.append('fullName', fullName)
-      form.append('role', 'user')
-
-      const res = await authAPI.registerMultipart(form)
-
-      if (res.data?.token) {
-        localStorage.setItem('token', res.data.token)
-        localStorage.setItem('user', JSON.stringify(res.data.user))
-        setUser(res.data.user)
-        toast.success('تم إنشاء الحساب بنجاح! جاري تحويلك...')
-        setTimeout(() => navigate('/customer-dashboard'), 500)
-      }
+      await registerUser(email, password, { fullName, role: 'user' })
+      toast.success('تم إنشاء الحساب بنجاح! جاري تحويلك...')
+      setTimeout(() => navigate('/customer-dashboard'), 500)
     } catch (error: any) {
       if (error?.response?.status === 409 || error?.response?.data?.error === 'email_taken') {
         toast.error('هذا البريد الإلكتروني مسجل بالفعل')
@@ -79,8 +66,6 @@ const Register = () => {
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
-
-      <Toaster position="top-center" />
 
       <div className="max-w-md w-full bg-white/90 backdrop-blur-md border border-neutral-200 rounded-2xl shadow-2xl p-8 relative z-10">
         {/* Header */}

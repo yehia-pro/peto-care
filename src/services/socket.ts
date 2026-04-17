@@ -43,6 +43,10 @@ class SocketService {
             console.log('Socket already connected')
             return this.socket
         }
+        // Reuse in-flight client (e.g. React 18 StrictMode remount) instead of opening a second WebSocket
+        if (this.socket && !this.socket.connected) {
+            return this.socket
+        }
 
         this.socket = io(SOCKET_URL, {
             auth: { token },
@@ -92,11 +96,16 @@ class SocketService {
      * Disconnect from Socket.IO server
      */
     disconnect(): void {
-        if (this.socket) {
-            this.socket.disconnect()
-            this.socket = null
-            console.log('Socket disconnected manually')
+        if (!this.socket) return
+        const s = this.socket
+        this.socket = null
+        try {
+            s.removeAllListeners()
+            s.disconnect()
+        } catch {
+            /* ignore */
         }
+        console.log('Socket disconnected manually')
     }
 
     /**

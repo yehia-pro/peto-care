@@ -20,6 +20,7 @@
     "server:start": "npm run --prefix server start"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
     "@ant-design/icons": "^6.1.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",

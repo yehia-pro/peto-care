@@ -1,9 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
-import mongoose, { Schema } from 'mongoose'
-import { AppointmentModel } from './appointments'
-import PetRecordModel from '../models/PetRecord'
-import MPetStoreModel from '../models/PetStore'
+import { supabaseAdmin } from '../lib/supabase'
 
 const router = Router()
 
@@ -12,38 +9,58 @@ router.get('/customer', requireAuth(['user']), async (req, res) => {
     try {
         const userId = (req as any).user.id
 
-        const [appointments, pets, reminders] = await Promise.all([
-            AppointmentModel.find({ userId }).lean(),
-            PetRecordModel.find({ userId }).lean(),
-            mongoose.models.Reminder
-                ? mongoose.models.Reminder.find({ userId }).lean()
-                : Promise.resolve([])
-        ])
+        const nowIso = new Date().toISOString()
 
-        const now = new Date()
-        const upcomingAppointments = appointments.filter(a =>
-            new Date(a.scheduledAt) > now && a.status !== 'cancelled'
-        )
+        const { count: totalAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+
+        const { count: upcomingAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('scheduled_at', nowIso)
+            .in('status', ['pending', 'confirmed'])
+
+        const { count: completedAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('status', 'completed')
+
+        const { count: pendingAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('status', 'pending')
+
+        const { count: totalPets } = await supabaseAdmin
+            .from('pets')
+            .select('*', { count: 'exact', head: true })
+            .or(`owner_user_id.eq.${userId},user_id.eq.${userId}`)
+
+        const { count: totalReminders } = await supabaseAdmin
+            .from('reminders')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+
+        const { count: upcomingReminders } = await supabaseAdmin
+            .from('reminders')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('sent', false)
+            .gte('due_date', nowIso)
 
         const stats = {
-            totalAppointments: appointments.length,
-            upcomingAppointments: upcomingAppointments.length,
-            completedAppointments: appointments.filter(a => a.status === 'completed').length,
-            pendingAppointments: appointments.filter(a => a.status === 'pending').length,
-            totalPets: pets.length,
-            totalReminders: reminders.length,
-            upcomingReminders: reminders.filter((r: any) =>
-                new Date(r.dueDate) > now && !r.sent
-            ).length,
-            recentActivity: appointments
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 5)
-                .map(a => ({
-                    type: 'appointment',
-                    date: a.scheduledAt,
-                    status: a.status,
-                    reason: a.reason
-                }))
+            totalAppointments: totalAppointments || 0,
+            upcomingAppointments: upcomingAppointments || 0,
+            completedAppointments: completedAppointments || 0,
+            pendingAppointments: pendingAppointments || 0,
+            totalPets: totalPets || 0,
+            totalReminders: totalReminders || 0,
+            upcomingReminders: upcomingReminders || 0,
+            recentActivity: []
         }
 
         return res.json({ statistics: stats })
@@ -57,37 +74,73 @@ router.get('/customer', requireAuth(['user']), async (req, res) => {
 router.get('/vet', requireAuth(['vet']), async (req, res) => {
     try {
         const vetId = (req as any).user.id
-
-        const appointments = await AppointmentModel.find({ vetId }).lean()
-
         const now = new Date()
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const tomorrow = new Date(today)
-        tomorrow.setDate(tomorrow.getDate() + 1)
+        const todayStart = new Date(now)
+        todayStart.setHours(0, 0, 0, 0)
+        const todayEnd = new Date(now)
+        todayEnd.setHours(23, 59, 59, 999)
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-        const thisMonth = new Date()
-        thisMonth.setDate(1)
-        thisMonth.setHours(0, 0, 0, 0)
+        const { count: totalAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+
+        const { count: todayAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+            .gte('scheduled_at', todayStart.toISOString())
+            .lte('scheduled_at', todayEnd.toISOString())
+
+        const { count: upcomingAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+            .gte('scheduled_at', now.toISOString())
+            .in('status', ['pending', 'confirmed'])
+
+        const { count: pendingAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+            .eq('status', 'pending')
+
+        const { count: completedAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+            .eq('status', 'completed')
+
+        const { count: thisMonthAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('vet_id', vetId)
+            .gte('scheduled_at', monthStart.toISOString())
+
+        const { data: reviewRows } = await supabaseAdmin
+            .from('reviews')
+            .select('rating')
+            .eq('target_type', 'vet')
+            .eq('target_id', vetId)
+
+        const totalReviews = (reviewRows || []).length
+        const averageRating = totalReviews > 0
+            ? Number(
+                ((reviewRows || []).reduce((sum: number, r: any) => sum + Number(r.rating || 0), 0) / totalReviews).toFixed(2)
+            )
+            : 0
 
         const stats = {
-            totalAppointments: appointments.length,
-            todayAppointments: appointments.filter(a => {
-                const apptDate = new Date(a.scheduledAt)
-                return apptDate >= today && apptDate < tomorrow
-            }).length,
-            upcomingAppointments: appointments.filter(a =>
-                new Date(a.scheduledAt) > now && a.status !== 'cancelled'
-            ).length,
-            pendingAppointments: appointments.filter(a => a.status === 'pending').length,
-            completedAppointments: appointments.filter(a => a.status === 'completed').length,
-            thisMonthAppointments: appointments.filter(a => {
-                const apptDate = new Date(a.scheduledAt)
-                return apptDate >= thisMonth
-            }).length,
-            averageRating: 4.5 + Math.random() * 0.5, // Mock for now
-            totalReviews: Math.floor(Math.random() * 50) + 10,
-            weeklyData: generateWeeklyData(appointments)
+            totalAppointments: totalAppointments || 0,
+            todayAppointments: todayAppointments || 0,
+            upcomingAppointments: upcomingAppointments || 0,
+            pendingAppointments: pendingAppointments || 0,
+            completedAppointments: completedAppointments || 0,
+            thisMonthAppointments: thisMonthAppointments || 0,
+            averageRating,
+            totalReviews,
+            weeklyData: []
         }
 
         return res.json({ statistics: stats })
@@ -101,41 +154,62 @@ router.get('/vet', requireAuth(['vet']), async (req, res) => {
 router.get('/store', requireAuth(['petstore']), async (req, res) => {
     try {
         const userId = (req as any).user.id
+        const now = new Date()
+        const todayStart = new Date(now)
+        todayStart.setHours(0, 0, 0, 0)
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-        const store = await MPetStoreModel.findOne({ userId }).lean() as any
+        // Get store
+        const { data: store } = await supabaseAdmin
+            .from('stores')
+            .select('*')
+            .or(`owner_user_id.eq.${userId},user_id.eq.${userId}`)
+            .maybeSingle()
 
         if (!store) {
             return res.status(404).json({ error: 'store_not_found' })
         }
 
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
+        // Get products count
+        const { count: totalProducts } = await supabaseAdmin
+            .from('store_products')
+            .select('*', { count: 'exact', head: true })
+            .eq('store_id', store.id)
 
-        const thisMonth = new Date()
-        thisMonth.setDate(1)
-        thisMonth.setHours(0, 0, 0, 0)
+        // Get orders and compute aggregates
+        const { count: totalOrders } = await supabaseAdmin
+            .from('orders')
+            .select('*', { count: 'exact', head: true })
+            .eq('store_id', store.id)
 
-        // Mock order data (in real app, would come from orders collection)
-        const totalOrders = Math.floor(Math.random() * 100) + 20
-        const todayOrders = Math.floor(Math.random() * 10) + 1
-        const monthlyRevenue = Math.floor(Math.random() * 50000) + 10000
+        const { count: todayOrders } = await supabaseAdmin
+            .from('orders')
+            .select('*', { count: 'exact', head: true })
+            .eq('store_id', store.id)
+            .gte('created_at', todayStart.toISOString())
+
+        const { data: monthOrders } = await supabaseAdmin
+            .from('orders')
+            .select('total_amount')
+            .eq('store_id', store.id)
+            .gte('created_at', monthStart.toISOString())
+            .in('payment_status', ['paid', 'refunded'])
+
+        const monthlyRevenue = (monthOrders || []).reduce(
+            (sum: number, order: any) => sum + Number(order.total_amount || 0),
+            0
+        )
+        const averageOrderValue = (totalOrders || 0) > 0 ? Number((monthlyRevenue / (totalOrders || 1)).toFixed(2)) : 0
 
         const stats = {
-            storeName: store.storeName,
-            totalProducts: store.products?.length || 0,
-            rating: store.rating || 0,
-            totalOrders,
-            todayOrders,
+            storeName: store.name,
+            totalProducts: totalProducts || 0,
+            rating: store.metadata?.rating || 0,
+            totalOrders: totalOrders || 0,
+            todayOrders: todayOrders || 0,
             monthlyRevenue,
-            averageOrderValue: totalOrders > 0 ? Math.floor(monthlyRevenue / totalOrders) : 0,
-            topProducts: (store.products || [])
-                .sort((a: any, b: any) => (b.sales || 0) - (a.sales || 0))
-                .slice(0, 5)
-                .map((p: any) => ({
-                    name: p.name,
-                    sales: p.sales || Math.floor(Math.random() * 50),
-                    revenue: p.price * (p.sales || Math.floor(Math.random() * 50))
-                }))
+            averageOrderValue,
+            topProducts: []
         }
 
         return res.json({ statistics: stats })
@@ -148,39 +222,55 @@ router.get('/store', requireAuth(['petstore']), async (req, res) => {
 // Get admin statistics
 router.get('/admin', requireAuth(['admin']), async (req, res) => {
     try {
-        const MUserModel = mongoose.models.User || mongoose.model('User', new Schema({}, { strict: false }))
+        const now = new Date()
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
-        const [users, appointments, stores] = await Promise.all([
-            MUserModel.find({}).lean(),
-            AppointmentModel.find({}).lean(),
-            MPetStoreModel.find({}).lean()
-        ])
+        const { count: totalUsers } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
 
-        const thisMonth = new Date()
-        thisMonth.setDate(1)
-        thisMonth.setHours(0, 0, 0, 0)
+        const { count: totalCustomers } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'customer')
+
+        const { count: totalVets } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'vet')
+
+        const { count: totalStores } = await supabaseAdmin
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'store_owner')
+
+        const { count: totalAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+
+        const { count: thisMonthAppointments } = await supabaseAdmin
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', monthStart)
+
+        const { data: pendingProfiles } = await supabaseAdmin
+            .from('profiles')
+            .select('id, metadata')
+            .in('role', ['vet', 'store_owner'])
+
+        const pendingApprovals = (pendingProfiles || []).filter(
+            (p: any) => p?.metadata?.approval_status === 'pending'
+        ).length
 
         const stats = {
-            totalUsers: users.length,
-            totalCustomers: users.filter((u: any) => u.role === 'user').length,
-            totalVets: users.filter((u: any) => u.role === 'vet').length,
-            totalStores: stores.length,
-            totalAppointments: appointments.length,
-            thisMonthAppointments: appointments.filter(a =>
-                new Date(a.createdAt) >= thisMonth
-            ).length,
-            pendingApprovals: users.filter((u: any) =>
-                (u.role === 'vet' || u.role === 'petstore') && !u.isApproved
-            ).length,
-            recentRegistrations: users
-                .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 10)
-                .map((u: any) => ({
-                    fullName: u.fullName,
-                    email: u.email,
-                    role: u.role,
-                    createdAt: u.createdAt
-                }))
+            totalUsers: totalUsers || 0,
+            totalCustomers: totalCustomers || 0,
+            totalVets: totalVets || 0,
+            totalStores: totalStores || 0,
+            totalAppointments: totalAppointments || 0,
+            thisMonthAppointments: thisMonthAppointments || 0,
+            pendingApprovals,
+            recentRegistrations: []
         }
 
         return res.json({ statistics: stats })
@@ -189,24 +279,5 @@ router.get('/admin', requireAuth(['admin']), async (req, res) => {
         return res.status(500).json({ error: 'server_error' })
     }
 })
-
-// Helper function to generate weekly appointment data
-function generateWeeklyData(appointments: any[]) {
-    const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
-    const weekData = days.map(day => ({ day, count: 0 }))
-
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-    appointments.forEach(appt => {
-        const apptDate = new Date(appt.scheduledAt)
-        if (apptDate >= weekAgo && apptDate <= now) {
-            const dayIndex = apptDate.getDay()
-            weekData[dayIndex].count++
-        }
-    })
-
-    return weekData
-}
 
 export default router

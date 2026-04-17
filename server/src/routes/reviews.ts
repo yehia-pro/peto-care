@@ -2,16 +2,13 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
-import Review from '../models/Review';
-import MUserModel from '../models/User';
-import MPetStoreModel from '../models/PetStore';
-import mongoose from 'mongoose';
+import { supabaseAdmin } from '../lib/supabase';
 
 const router = Router();
 
 const createReviewSchema = z.object({
   body: z.object({
-    targetId: z.string().min(1),
+    targetId: z.string().uuid(),
     targetType: z.enum(['vet', 'petstore', 'product']),
     rating: z.number().min(1).max(5),
     comment: z.string().optional()
@@ -24,46 +21,21 @@ router.post('/', requireAuth(['user']), validate(createReviewSchema), async (req
     const { targetId, targetType, rating, comment } = req.body;
     const reviewerId = (req as any).user.id;
 
-    // Verify target exists
-    if (targetType === 'vet') {
-      const vet = await MUserModel.findById(targetId);
-      if (!vet || vet.role !== 'vet') return res.status(404).json({ error: 'vet_not_found' });
-    } else if (targetType === 'petstore') {
-      const store = await MPetStoreModel.findById(targetId);
-      if (!store) return res.status(404).json({ error: 'store_not_found' });
-    }
-    // Product verification could be added here
+    // Insert review into Supabase
+    const { data: review, error } = await supabaseAdmin
+      .from('reviews')
+      .insert({
+        reviewer_id: reviewerId,
+        target_id: targetId,
+        target_type: targetType,
+        rating,
+        comment
+      })
+      .select()
+      .single();
 
-    const review = new Review({
-      reviewerId,
-      targetId,
-      targetType,
-      rating,
-      comment
-    });
-
-    await review.save();
-
-    // Calculate new average rating
-    const stats = await Review.aggregate([
-      { $match: { targetId: new mongoose.Types.ObjectId(targetId) } },
-      { $group: { _id: null, average: { $avg: '$rating' }, count: { $sum: 1 } } }
-    ]);
-
-    const newRating = stats.length > 0 ? Number(stats[0].average.toFixed(1)) : 0;
-    const newCount = stats.length > 0 ? stats[0].count : 0;
-
-    // Update target entity
-    if (targetType === 'vet') {
-      await MUserModel.findByIdAndUpdate(targetId, {
-        rating: newRating,
-        reviewCount: newCount
-      });
-    } else if (targetType === 'petstore') {
-      await MPetStoreModel.findByIdAndUpdate(targetId, {
-        rating: newRating,
-        reviewCount: newCount
-      });
+    if (error) {
+      return res.status(500).json({ error: 'review_creation_failed', message: error.message });
     }
 
     res.status(201).json({ success: true, review });
@@ -81,35 +53,38 @@ router.get('/:targetId', async (req, res) => {
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
 
-    const reviews = await Review.find({ targetId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum)
-      .populate('reviewerId', 'fullName avatarUrl')
-      .lean();
+    // Get reviews from Supabase
+    const { data: reviews, error, count } = await supabaseAdmin
+      .from('reviews')
+      .select('*', { count: 'exact' })
+      .eq('target_id', targetId)
+      .order('created_at', { ascending: false })
+      .range((pageNum - 1) * limitNum, pageNum * limitNum - 1);
 
-    const total = await Review.countDocuments({ targetId });
+    if (error) {
+      return res.status(500).json({ error: 'fetch_failed', message: error.message });
+    }
 
     // Calculate average rating
-    const stats = await Review.aggregate([
-      { $match: { targetId: new mongoose.Types.ObjectId(targetId) } },
-      { $group: { _id: null, average: { $avg: '$rating' }, count: { $sum: 1 } } }
-    ]);
+    const { data: stats } = await supabaseAdmin
+      .from('reviews')
+      .select('rating')
+      .eq('target_id', targetId);
 
-    const averageRating = stats.length > 0 ? stats[0].average : 0;
-    const totalReviews = stats.length > 0 ? stats[0].count : 0;
+    const averageRating = stats?.length
+      ? stats.reduce((sum: number, r: any) => sum + r.rating, 0) / stats.length
+      : 0;
 
     res.json({
-      reviews,
+      reviews: reviews || [],
       averageRating,
-      totalReviews,
+      totalReviews: count || 0,
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum)
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limitNum)
       }
     });
 
