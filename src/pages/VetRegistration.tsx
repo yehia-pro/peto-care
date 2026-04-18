@@ -78,7 +78,10 @@ export default function VetRegistration() {
   }, [t])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+    let { name, value } = e.target
+    if (name === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 11);
+    }
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name as keyof VetFormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }))
@@ -289,6 +292,7 @@ export default function VetRegistration() {
                   <input
                     type="tel"
                     name="phone"
+                    maxLength={11}
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder={t('auth.phone')}

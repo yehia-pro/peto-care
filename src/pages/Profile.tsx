@@ -124,7 +124,9 @@ const Profile: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'phone') value = value.replace(/\D/g, '').slice(0, 11);
+    setForm({ ...form, [name]: value });
   };
 
   const handleSaveProfile = async () => {
@@ -329,6 +331,7 @@ const Profile: React.FC = () => {
                 <input
                   type="tel"
                   name="phone"
+                  maxLength={11}
                   value={form.phone}
                   onChange={handleInputChange}
                   disabled={!isEditing}
@@ -402,10 +405,11 @@ const Profile: React.FC = () => {
                           <input
                             type="tel"
                             placeholder="رقم الهاتف"
+                            maxLength={11}
                             value={phone.number}
                             onChange={(e) => {
                               const newPhones = [...(form.phoneNumbers || [])]
-                              newPhones[index].number = e.target.value
+                              newPhones[index].number = e.target.value.replace(/\D/g, '').slice(0, 11)
                               setForm({ ...form, phoneNumbers: newPhones })
                             }}
                             disabled={!isEditing}

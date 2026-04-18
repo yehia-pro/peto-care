@@ -131,7 +131,8 @@ export default function CustomerServices() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+    let { name, value } = e.target;
+    if (name === 'phone') value = value.replace(/\D/g, '').slice(0, 11);
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 

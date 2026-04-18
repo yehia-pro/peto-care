@@ -122,7 +122,8 @@ const CompleteProfile = () => {
                     type="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    maxLength={11}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                     className="w-full pr-10 pl-4 py-3 rounded-xl border-2 border-neutral-200 focus:border-secondary-500 focus:ring-0 transition-colors"
                     placeholder="01xxxxxxxxx"
                   />
@@ -137,7 +138,8 @@ const CompleteProfile = () => {
                   <input
                     type="tel"
                     value={altPhone}
-                    onChange={(e) => setAltPhone(e.target.value)}
+                    maxLength={11}
+                    onChange={(e) => setAltPhone(e.target.value.replace(/\D/g, ''))}
                     className="w-full pr-10 pl-4 py-3 rounded-xl border-2 border-neutral-200 focus:border-secondary-500 focus:ring-0 transition-colors"
                     placeholder="01xxxxxxxxx"
                   />
@@ -191,17 +193,27 @@ const CompleteProfile = () => {
                       toast.error('متصفحك لا يدعم تحديد الموقع');
                       return;
                     }
-                    toast.loading('جاري تحديد موقعك...', { id: 'geo' });
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => {
-                        setPosition([pos.coords.latitude, pos.coords.longitude]);
-                        toast.success('تم تحديد موقعك بنجاح', { id: 'geo' });
-                      },
-                      (err) => {
-                        toast.error('تعذر تحديد موقعك. يرجى التأكد من منح الصلاحيات.', { id: 'geo' });
-                      },
-                      { enableHighAccuracy: true }
-                    );
+                    toast.loading('جاري تحديد موقعك (بدقة عالية)...', { id: 'geo' });
+                    
+                    const fetchPosition = (highAccuracy: boolean) => {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setPosition([pos.coords.latitude, pos.coords.longitude]);
+                          toast.success('تم تحديد موقعك بنجاح', { id: 'geo' });
+                        },
+                        (err) => {
+                          if (highAccuracy && err.code === err.TIMEOUT) {
+                            toast.loading('جاري المحاولة للحصول على موقع تقريبي...', { id: 'geo' });
+                            fetchPosition(false);
+                          } else {
+                            toast.error('تعذر تحديد موقعك. يرجى التأكد من منح الصلاحيات.', { id: 'geo' });
+                          }
+                        },
+                        { enableHighAccuracy: highAccuracy, timeout: 15000, maximumAge: 0 }
+                      );
+                    };
+
+                    fetchPosition(true);
                   }}
                   className="flex items-center gap-1 text-sm bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-lg transition-colors"
                 >

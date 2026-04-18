@@ -58,7 +58,7 @@ const DeliveryAdmin = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input className="border rounded-md px-3 py-2" placeholder="الاسم" value={newDriver.name} onChange={(e)=>setNewDriver({...newDriver, name: e.target.value})} />
-                <input className="border rounded-md px-3 py-2" placeholder="الهاتف" value={newDriver.phone} onChange={(e)=>setNewDriver({...newDriver, phone: e.target.value})} />
+                <input className="border rounded-md px-3 py-2" placeholder="الهاتف" value={newDriver.phone} maxLength={11} onChange={(e)=>setNewDriver({...newDriver, phone: e.target.value.replace(/\D/g, '').slice(0, 11)})} />
                 <input className="border rounded-md px-3 py-2" placeholder="لوحة المركبة" value={newDriver.vehiclePlate} onChange={(e)=>setNewDriver({...newDriver, vehiclePlate: e.target.value})} />
               </div>
               <button onClick={addDriver} className="bg-[var(--color-vet-primary)] text-white px-4 py-2 rounded-md flex items-center"><Plus className="w-4 h-4 mr-1" />إضافة سائق</button>

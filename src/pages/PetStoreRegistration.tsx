@@ -109,7 +109,10 @@ const PetStoreRegistration: React.FC = () => {
   ], [t])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+    let { name, value } = e.target
+    if (name === 'phone' || name === 'whatsapp') {
+      value = value.replace(/\D/g, '').slice(0, 11);
+    }
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name as keyof PetStoreFormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }))
@@ -132,19 +135,27 @@ const PetStoreRegistration: React.FC = () => {
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData(prev => ({
-            ...prev,
-            latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString()
-          }))
-          toast.success(t('registration.petStore.getCurrentLocation'))
-        },
-        () => {
-          toast.error(t('appointments.errors.location'))
-        }
-      )
+      const fetchPosition = (highAccuracy) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setFormData(prev => ({
+              ...prev,
+              latitude: position.coords.latitude.toString(),
+              longitude: position.coords.longitude.toString()
+            }))
+            toast.success(t('registration.petStore.getCurrentLocation'))
+          },
+          (err) => {
+            if (highAccuracy && err.code === err.TIMEOUT) {
+              fetchPosition(false);
+            } else {
+              toast.error(t('appointments.errors.location'))
+            }
+          },
+          { enableHighAccuracy: highAccuracy, timeout: 15000, maximumAge: 0 }
+        )
+      };
+      fetchPosition(true);
     } else {
       toast.error(t('appointments.errors.generic'))
     }
@@ -511,6 +522,7 @@ const PetStoreRegistration: React.FC = () => {
                         <input
                           type="tel"
                           name="phone"
+                          maxLength={11}
                           value={formData.phone}
                           onChange={handleInputChange}
                           className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all"
@@ -561,10 +573,11 @@ const PetStoreRegistration: React.FC = () => {
                       type="tel"
                       name="whatsapp"
                       dir="ltr"
+                      maxLength={11}
                       value={formData.whatsapp}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-vet-accent)] transition-all text-left"
-                      placeholder="+20 123 456 7890"
+                      placeholder="01xxxxxxxxx"
                     />
                   </div>
 
