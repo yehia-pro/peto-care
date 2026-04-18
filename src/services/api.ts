@@ -1,6 +1,6 @@
 import axios from 'axios'
-
-// Extend ImportMeta interface for Vite environment variables
+import { supabase } from '../lib/supabase'
+import { toast } from 'sonner'// Extend ImportMeta interface for Vite environment variables
 declare global {
   interface ImportMeta {
     env: {
@@ -33,10 +33,91 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor — Supabase issues access tokens; no Express /auth/refresh in hard cutover.
+let isRefreshing = false
+let failedQueue: any[] = []
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
+
+// Response interceptor — Handles 401 Unauthorized via Silent Refresh Queueing from Supabase
 api.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  async (error) => {
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = 'Bearer ' + token
+            return api(originalRequest)
+          })
+          .catch((err) => {
+            return Promise.reject(err)
+          })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const { data, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError || !data.session) {
+          throw new Error('No valid session')
+        }
+
+        const newToken = data.session.access_token
+        localStorage.setItem('token', newToken)
+
+        api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken
+        originalRequest.headers.Authorization = 'Bearer ' + newToken
+
+        processQueue(null, newToken)
+
+        toast.success(
+          typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
+            ? 'تم تجديد الجلسة بنجاح في الخلفية'
+            : 'Session restored successfully in background',
+          { id: 'session-restore' }
+        )
+
+        return api(originalRequest)
+      } catch (err) {
+        processQueue(err, null)
+
+        toast.error(
+          typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
+            ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى'
+            : 'Session expired, please login again',
+          { id: 'session-expired' }
+        )
+
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 1500)
+
+        return Promise.reject(err)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
+    return Promise.reject(error)
+  }
 )
 
 // Auth API

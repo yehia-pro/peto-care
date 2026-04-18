@@ -203,6 +203,55 @@ router.put('/profile', requireAuth(['user', 'vet', 'admin', 'petstore']), valida
   })
 })
 
+router.put('/profile/complete', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
+  const userId = (req as any).user.id
+  const { phone, altPhone, city, address, location } = req.body
+
+  if (!phone || !city || !address) {
+    return res.status(400).json({ error: 'missing_fields', message: 'الهاتف والمحافظة والعنوان مطلوبين' })
+  }
+
+  try {
+    // Fetch current profile metadata to merge
+    const { data: profile, error: profileErr } = await supabaseAdmin
+      .from('profiles')
+      .select('metadata')
+      .eq('id', userId)
+      .single()
+
+    if (profileErr) {
+      return res.status(400).json({ error: 'profile_fetch_failed', message: profileErr.message })
+    }
+
+    const newMetadata = {
+      ...(profile.metadata as Record<string, any> || {}),
+      altPhone,
+      address,
+      location: location || null
+    }
+
+    const updates = {
+      phone,
+      country: city,
+      metadata: newMetadata,
+      updated_at: new Date().toISOString()
+    }
+
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+
+    if (error) {
+      return res.status(400).json({ error: 'profile_update_failed', message: error.message })
+    }
+
+    return res.json({ success: true, message: 'تم استكمال البيانات بنجاح' })
+  } catch (error: any) {
+    return res.status(500).json({ error: 'server_error', message: error.message })
+  }
+})
+
 router.patch('/profile/image', requireAuth(['user', 'vet', 'admin', 'petstore']), async (req, res) => {
   const userId = (req as any).user.id
   const avatarUrl = req.body?.avatarUrl

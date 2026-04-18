@@ -60,6 +60,7 @@ const Terms = lazy(() => import('./pages/Terms'))
 const Privacy = lazy(() => import('./pages/Privacy'))
 const FAQ = lazy(() => import('./pages/FAQ'))
 const Community = lazy(() => import('./pages/Community'))
+const CompleteProfile = lazy(() => import('./pages/CompleteProfile'))
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={
@@ -79,10 +80,25 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   </Suspense>
 )
 
+const OnboardingGuard = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, user } = useAuthStore()
+  const locationPath = window.location.pathname
+
+  if (isAuthenticated && user && !user.phone && locationPath !== '/complete-profile') {
+    return <Navigate to="/complete-profile" replace />
+  }
+
+  return <>{children}</>
+}
+
 function App() {
   const { currentLanguage } = useLanguageStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, initializeGoogleAuth } = useAuthStore()
   const [showSplash, setShowSplash] = useState(true)
+
+  useEffect(() => {
+    initializeGoogleAuth()
+  }, [])
 
   return (
     <BrowserRouter
@@ -100,106 +116,109 @@ function App() {
               <div className="relative z-10 min-h-screen">
                 <Navbar />
                 <main className="pt-24 min-h-[70vh] relative z-10">
-                  <Routes>
-                    <Route path="/" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
-                    <Route path="/services" element={<SuspenseWrapper><CustomerServices /></SuspenseWrapper>} />
-                    <Route path="/customer-service" element={<SuspenseWrapper><CustomerService /></SuspenseWrapper>} />
-                    <Route path="/global-vets" element={<SuspenseWrapper><GlobalVets /></SuspenseWrapper>} />
-                    <Route path="/vets/:id" element={<SuspenseWrapper><PublicVetProfile /></SuspenseWrapper>} />
-                    <Route path="/veterinary-diseases" element={<SuspenseWrapper><VeterinaryDiseases /></SuspenseWrapper>} />
-                    <Route path="/partner-stores" element={<SuspenseWrapper><PartnerStores /></SuspenseWrapper>} />
-                    <Route path="/partner-stores/:id" element={<SuspenseWrapper><StoreDetails /></SuspenseWrapper>} />
-                    <Route path="/billing" element={<SuspenseWrapper><Billing /></SuspenseWrapper>} />
-                    <Route path="/products" element={<SuspenseWrapper><Products /></SuspenseWrapper>} />
-                    <Route path="/cart" element={<SuspenseWrapper><Cart /></SuspenseWrapper>} />
-                    <Route path="/favorites" element={<SuspenseWrapper><Favorites /></SuspenseWrapper>} />
-                    <Route path="/checkout" element={<SuspenseWrapper><Checkout /></SuspenseWrapper>} />
-                    <Route path="/checkout/success" element={<SuspenseWrapper><CheckoutSuccess /></SuspenseWrapper>} />
-                    <Route path="/checkout/cancel" element={<SuspenseWrapper><CheckoutCancel /></SuspenseWrapper>} />
-                    <Route path="/delivery/request" element={<SuspenseWrapper><DeliveryRequest /></SuspenseWrapper>} />
-                    <Route path="/delivery/track" element={<SuspenseWrapper><DeliveryTracking /></SuspenseWrapper>} />
-                    <Route path="/delivery/admin" element={<SuspenseWrapper><DeliveryAdmin /></SuspenseWrapper>} />
-                    <Route path="/emergency" element={<SuspenseWrapper><Emergency /></SuspenseWrapper>} />
-                    <Route path="/login" element={<SuspenseWrapper><Login /></SuspenseWrapper>} />
-                    <Route path="/forgot-password" element={<SuspenseWrapper><ForgotPassword /></SuspenseWrapper>} />
-                    <Route path="/reset-password" element={<SuspenseWrapper><ResetPassword /></SuspenseWrapper>} />
-                    <Route path="/register" element={<SuspenseWrapper><Register /></SuspenseWrapper>} />
-                    <Route path="/vet-registration" element={<SuspenseWrapper><VetRegistration /></SuspenseWrapper>} />
-                    <Route path="/petstore-registration" element={<SuspenseWrapper><PetStoreRegistration /></SuspenseWrapper>} />
-                    <Route path="/pending-approval" element={<SuspenseWrapper><PendingApproval /></SuspenseWrapper>} />
-                    <Route
-                      path="/dashboard"
-                      element={isAuthenticated ? <SuspenseWrapper><Dashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/chat"
-                      element={isAuthenticated ? <SuspenseWrapper><Chat /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/appointments"
-                      element={isAuthenticated ? <SuspenseWrapper><Appointments /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/vet-bookings"
-                      element={isAuthenticated ? <SuspenseWrapper><VetBookings /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route path="/no-pets" element={<SuspenseWrapper><NoPets /></SuspenseWrapper>} />
-                    <Route
-                      path="/pet-records"
-                      element={isAuthenticated ? <SuspenseWrapper><PetRecords /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin-dashboard"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin/transactions"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminTransactions /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin/manage-pet-guides"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminManagePetGuides /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin/manage-diseases"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminManageDiseases /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin/manage-coupons"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminCoupons /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/admin/manage-stores"
-                      element={isAuthenticated ? <SuspenseWrapper><AdminManageStores /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/doctor-dashboard"
-                      element={isAuthenticated ? <SuspenseWrapper><DoctorDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/customer-dashboard"
-                      element={isAuthenticated ? <SuspenseWrapper><CustomerDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/petstore-dashboard"
-                      element={isAuthenticated ? <SuspenseWrapper><PetStoreDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route
-                      path="/profile"
-                      element={isAuthenticated ? <SuspenseWrapper><Profile /></SuspenseWrapper> : <Navigate to="/login" replace />}
-                    />
-                    <Route path="/about" element={<SuspenseWrapper><AboutUs /></SuspenseWrapper>} />
-                    <Route path="/contact" element={<SuspenseWrapper><ContactUs /></SuspenseWrapper>} />
-                    <Route path="/terms" element={<SuspenseWrapper><Terms /></SuspenseWrapper>} />
-                    <Route path="/privacy" element={<SuspenseWrapper><Privacy /></SuspenseWrapper>} />
-                    <Route path="/faq" element={<SuspenseWrapper><FAQ /></SuspenseWrapper>} />
-                    <Route path="/community" element={<SuspenseWrapper><Community /></SuspenseWrapper>} />
-                    <Route path="*" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
-                  </Routes>
+                  <OnboardingGuard>
+                    <Routes>
+                      <Route path="/" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
+                      <Route path="/services" element={<SuspenseWrapper><CustomerServices /></SuspenseWrapper>} />
+                      <Route path="/customer-service" element={<SuspenseWrapper><CustomerService /></SuspenseWrapper>} />
+                      <Route path="/global-vets" element={<SuspenseWrapper><GlobalVets /></SuspenseWrapper>} />
+                      <Route path="/vets/:id" element={<SuspenseWrapper><PublicVetProfile /></SuspenseWrapper>} />
+                      <Route path="/veterinary-diseases" element={<SuspenseWrapper><VeterinaryDiseases /></SuspenseWrapper>} />
+                      <Route path="/partner-stores" element={<SuspenseWrapper><PartnerStores /></SuspenseWrapper>} />
+                      <Route path="/partner-stores/:id" element={<SuspenseWrapper><StoreDetails /></SuspenseWrapper>} />
+                      <Route path="/billing" element={<SuspenseWrapper><Billing /></SuspenseWrapper>} />
+                      <Route path="/products" element={<SuspenseWrapper><Products /></SuspenseWrapper>} />
+                      <Route path="/cart" element={<SuspenseWrapper><Cart /></SuspenseWrapper>} />
+                      <Route path="/favorites" element={<SuspenseWrapper><Favorites /></SuspenseWrapper>} />
+                      <Route path="/checkout" element={<SuspenseWrapper><Checkout /></SuspenseWrapper>} />
+                      <Route path="/checkout/success" element={<SuspenseWrapper><CheckoutSuccess /></SuspenseWrapper>} />
+                      <Route path="/checkout/cancel" element={<SuspenseWrapper><CheckoutCancel /></SuspenseWrapper>} />
+                      <Route path="/delivery/request" element={<SuspenseWrapper><DeliveryRequest /></SuspenseWrapper>} />
+                      <Route path="/delivery/track" element={<SuspenseWrapper><DeliveryTracking /></SuspenseWrapper>} />
+                      <Route path="/delivery/admin" element={<SuspenseWrapper><DeliveryAdmin /></SuspenseWrapper>} />
+                      <Route path="/emergency" element={<SuspenseWrapper><Emergency /></SuspenseWrapper>} />
+                      <Route path="/login" element={<SuspenseWrapper><Login /></SuspenseWrapper>} />
+                      <Route path="/forgot-password" element={<SuspenseWrapper><ForgotPassword /></SuspenseWrapper>} />
+                      <Route path="/reset-password" element={<SuspenseWrapper><ResetPassword /></SuspenseWrapper>} />
+                      <Route path="/register" element={<SuspenseWrapper><Register /></SuspenseWrapper>} />
+                      <Route path="/complete-profile" element={<SuspenseWrapper><CompleteProfile /></SuspenseWrapper>} />
+                      <Route path="/vet-registration" element={<SuspenseWrapper><VetRegistration /></SuspenseWrapper>} />
+                      <Route path="/petstore-registration" element={<SuspenseWrapper><PetStoreRegistration /></SuspenseWrapper>} />
+                      <Route path="/pending-approval" element={<SuspenseWrapper><PendingApproval /></SuspenseWrapper>} />
+                      <Route
+                        path="/dashboard"
+                        element={isAuthenticated ? <SuspenseWrapper><Dashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/chat"
+                        element={isAuthenticated ? <SuspenseWrapper><Chat /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/appointments"
+                        element={isAuthenticated ? <SuspenseWrapper><Appointments /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/vet-bookings"
+                        element={isAuthenticated ? <SuspenseWrapper><VetBookings /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route path="/no-pets" element={<SuspenseWrapper><NoPets /></SuspenseWrapper>} />
+                      <Route
+                        path="/pet-records"
+                        element={isAuthenticated ? <SuspenseWrapper><PetRecords /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin-dashboard"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin/transactions"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminTransactions /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin/manage-pet-guides"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminManagePetGuides /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin/manage-diseases"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminManageDiseases /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin/manage-coupons"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminCoupons /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/admin/manage-stores"
+                        element={isAuthenticated ? <SuspenseWrapper><AdminManageStores /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/doctor-dashboard"
+                        element={isAuthenticated ? <SuspenseWrapper><DoctorDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/customer-dashboard"
+                        element={isAuthenticated ? <SuspenseWrapper><CustomerDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/petstore-dashboard"
+                        element={isAuthenticated ? <SuspenseWrapper><PetStoreDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route
+                        path="/profile"
+                        element={isAuthenticated ? <SuspenseWrapper><Profile /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                      />
+                      <Route path="/about" element={<SuspenseWrapper><AboutUs /></SuspenseWrapper>} />
+                      <Route path="/contact" element={<SuspenseWrapper><ContactUs /></SuspenseWrapper>} />
+                      <Route path="/terms" element={<SuspenseWrapper><Terms /></SuspenseWrapper>} />
+                      <Route path="/privacy" element={<SuspenseWrapper><Privacy /></SuspenseWrapper>} />
+                      <Route path="/faq" element={<SuspenseWrapper><FAQ /></SuspenseWrapper>} />
+                      <Route path="/community" element={<SuspenseWrapper><Community /></SuspenseWrapper>} />
+                      <Route path="*" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
+                    </Routes>
+                  </OnboardingGuard>
                 </main>
                 <UnifiedSupport />
                 <Footer />

@@ -40,6 +40,7 @@ interface AuthState {
   setUser: (user: ExtendedUser | null) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
+  initializeGoogleAuth: () => void
 }
 
 const fetchFullProfile = async (fallback: ExtendedUser): Promise<ExtendedUser> => {
@@ -171,5 +172,33 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user, isAuthenticated: !!user });
   },
   setLoading: (loading: boolean) => set({ loading }),
-  setError: (error: string | null) => set({ error })
+  setError: (error: string | null) => set({ error }),
+
+  initializeGoogleAuth: () => {
+    import('../lib/supabase').then(({ supabase }) => {
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const newToken = session.access_token;
+          localStorage.setItem('token', newToken);
+          set({ token: newToken });
+          
+          // Fetch backend profile data via access token
+          const baseUser: ExtendedUser = {
+            email: session.user.email || '',
+            id: session.user.id,
+            fullName: session.user.user_metadata?.full_name || '',
+            avatarUrl: session.user.user_metadata?.avatar_url || '',
+            role: 'user'
+          };
+          
+          const fullProfile = await fetchFullProfile(baseUser);
+          
+          localStorage.setItem('user', JSON.stringify(fullProfile));
+          set({ user: fullProfile as any, isAuthenticated: true });
+        } else if (event === 'SIGNED_OUT') {
+          useAuthStore.getState().logout();
+        }
+      });
+    });
+  }
 }))

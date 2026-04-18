@@ -85,12 +85,49 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
             }
         }
 
-        const handleConnectError = (error: Error) => {
+        const handleConnectError = async (error: Error) => {
             console.error('Socket connection error:', error)
             setIsConnected(false)
-            toast.error('فشل الاتصال بالخادم')
-        }
 
+            if (error.message && error.message.includes('Invalid authentication token')) {
+                try {
+                    // Try Silent Refresh
+                    const { supabase } = await import('../lib/supabase')
+                    const { data, error: sessionError } = await supabase.auth.getSession()
+
+                    if (sessionError || !data.session) {
+                        throw new Error('No valid session')
+                    }
+
+                    const newToken = data.session.access_token
+                    localStorage.setItem('token', newToken)
+
+                    toast.success(
+                        typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
+                            ? 'تم تجديد الجلسة بنجاح في الخلفية'
+                            : 'Session restored successfully in background',
+                        { id: 'session-restore' }
+                    )
+
+                    // Reconnect manually with the new token
+                    disconnect()
+                    socketService.connect(newToken)
+                } catch (err) {
+                    toast.error(
+                        typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
+                            ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى'
+                            : 'Session expired, please login again',
+                        { id: 'session-expired' }
+                    )
+                    useAuthStore.getState().logout()
+                    setTimeout(() => {
+                        window.location.href = '/login'
+                    }, 1500)
+                }
+            } else {
+                toast.error('فشل الاتصال بالخادم')
+            }
+        }
         const handleReconnect = (attemptNumber: number) => {
             console.log(`تمت إعادة الاتصال بعد ${attemptNumber} محاولة`)
             toast.success('تمت إعادة الاتصال بالخادم')
