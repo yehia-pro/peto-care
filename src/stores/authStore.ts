@@ -30,6 +30,7 @@ interface AuthState {
   user: ExtendedUser | null
   token: string | null
   loading: boolean
+  isInitializing: boolean
   error: string | null
   isAuthenticated: boolean
   login: (email: string, password: string, captcha?: { captchaId?: string, captchaAnswer?: string }) => Promise<void>
@@ -77,6 +78,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: initialUser,
   token: initialToken,
   loading: false,
+  isInitializing: true,
   error: null,
   isAuthenticated: !!initialToken && !!initialUser,
 
@@ -176,6 +178,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initializeGoogleAuth: () => {
     import('../lib/supabase').then(({ supabase }) => {
+      // Check initial session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          set({ isInitializing: false });
+        }
+      });
+
       supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           const newToken = session.access_token;
@@ -194,9 +203,12 @@ export const useAuthStore = create<AuthState>((set) => ({
           const fullProfile = await fetchFullProfile(baseUser);
           
           localStorage.setItem('user', JSON.stringify(fullProfile));
-          set({ user: fullProfile as any, isAuthenticated: true });
+          set({ user: fullProfile as any, isAuthenticated: true, isInitializing: false });
         } else if (event === 'SIGNED_OUT') {
           useAuthStore.getState().logout();
+          set({ isInitializing: false });
+        } else {
+          set({ isInitializing: false });
         }
       });
     });
