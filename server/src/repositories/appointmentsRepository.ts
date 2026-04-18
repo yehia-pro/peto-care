@@ -12,7 +12,7 @@ const mapAppointment = (row: any) => {
   const custEmbed = row.profiles
   return {
     _id: row.id,
-    userId: row.customer_user_id,
+    userId: row.user_id,
     vetId: row.vet_id,
     petId: row.pet_id,
     date: scheduled.toISOString(),
@@ -38,7 +38,7 @@ export const appointmentsRepository = {
     const { data: inserted, error } = await supabaseAdmin
       .from('appointments')
       .insert({
-        customer_user_id: data.customerUserId,
+        user_id: data.customerUserId,
         vet_id: data.vetId,
         pet_id: data.petId,
         scheduled_at: data.scheduledAt,
@@ -51,7 +51,7 @@ export const appointmentsRepository = {
           id,
           profiles:profiles!vets_user_id_fkey(full_name)
         ),
-        profiles:profiles!appointments_customer_user_id_fkey(full_name)
+        profiles:profiles!appointments_user_id_fkey(full_name)
       `)
       .single()
 
@@ -69,12 +69,12 @@ export const appointmentsRepository = {
           user_id,
           profiles:profiles!vets_user_id_fkey(full_name)
         ),
-        profiles:profiles!appointments_customer_user_id_fkey(full_name)
+        profiles:profiles!appointments_user_id_fkey(full_name)
       `)
       .order('scheduled_at', { ascending: false })
 
     if (role === 'user') {
-      query = query.eq('customer_user_id', userId)
+      query = query.eq('user_id', userId)
     } else if (role === 'vet') {
       const { data: vet } = await supabaseAdmin.from('vets').select('id').eq('user_id', userId).maybeSingle()
       if (!vet) return []
@@ -96,7 +96,7 @@ export const appointmentsRepository = {
           user_id,
           profiles:profiles!vets_user_id_fkey(full_name)
         ),
-        profiles:profiles!appointments_customer_user_id_fkey(full_name)
+        profiles:profiles!appointments_user_id_fkey(full_name)
       `)
       .eq('id', id)
       .maybeSingle()
@@ -127,7 +127,7 @@ export const appointmentsRepository = {
           user_id,
           profiles:profiles!vets_user_id_fkey(full_name)
         ),
-        profiles:profiles!appointments_customer_user_id_fkey(full_name)
+        profiles:profiles!appointments_user_id_fkey(full_name)
       `)
       .single()
     if (error) throw error
@@ -150,7 +150,7 @@ export const appointmentsRepository = {
           user_id,
           profiles:profiles!vets_user_id_fkey(full_name)
         ),
-        profiles:profiles!appointments_customer_user_id_fkey(full_name)
+        profiles:profiles!appointments_user_id_fkey(full_name)
       `)
       .single()
     if (error) throw error
