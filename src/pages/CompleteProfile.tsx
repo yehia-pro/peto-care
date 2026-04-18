@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { toast } from 'sonner'
-import { Phone, MapPin, Building, Home as HomeIcon } from 'lucide-react'
+import { Phone, MapPin, Building, Home as HomeIcon, Crosshair } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../services/api'
 
@@ -16,6 +16,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
 
+const phoneRegex = /^01[0125][0-9]{8}$/;
+
 const GOVERNORATES = [
   'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر', 'البحيرة', 'الفيوم',
   'الغربية', 'الإسماعيلية', 'المنوفية', 'المنيا', 'القليوبية', 'الوادي الجديد', 'السويس',
@@ -24,11 +26,17 @@ const GOVERNORATES = [
 ]
 
 function LocationMarker({ position, setPosition }: { position: [number, number] | null, setPosition: (pos: [number, number]) => void }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       setPosition([e.latlng.lat, e.latlng.lng])
     },
   })
+
+  React.useEffect(() => {
+    if (position) {
+      map.flyTo(position, 15);
+    }
+  }, [position, map]);
 
   return position === null ? null : (
     <Marker position={position}></Marker>
@@ -51,6 +59,16 @@ const CompleteProfile = () => {
     if (!phone || !governorate || !address) {
       toast.error('يرجى ملء جميع الحقول المطلوبة')
       return
+    }
+
+    if (!phoneRegex.test(phone)) {
+      toast.error('رقم الهاتف الأساسي غير صالح. يجب أن يتكون من 11 رقماً ويبدأ بـ 010 أو 011 أو 012 أو 015')
+      return;
+    }
+
+    if (altPhone && !phoneRegex.test(altPhone)) {
+      toast.error('رقم الهاتف البديل غير صالح. يجب أن يتكون من 11 رقماً ويبدأ بـ 010 أو 011 أو 012 أو 015')
+      return;
     }
 
     setIsSubmitting(true)
@@ -164,12 +182,37 @@ const CompleteProfile = () => {
 
             {/* Map */}
             <div className="mt-8">
-              <label className="block text-sm font-medium text-neutral-700 mb-2">حدد موقعك الدقيق على الخريطة (اختياري، يساعد في التوصيل)</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-neutral-700">حدد موقعك الدقيق على الخريطة (اختياري، يساعد في التوصيل)</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!navigator.geolocation) {
+                      toast.error('متصفحك لا يدعم تحديد الموقع');
+                      return;
+                    }
+                    toast.loading('جاري تحديد موقعك...', { id: 'geo' });
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setPosition([pos.coords.latitude, pos.coords.longitude]);
+                        toast.success('تم تحديد موقعك بنجاح', { id: 'geo' });
+                      },
+                      (err) => {
+                        toast.error('تعذر تحديد موقعك. يرجى التأكد من منح الصلاحيات.', { id: 'geo' });
+                      },
+                      { enableHighAccuracy: true }
+                    );
+                  }}
+                  className="flex items-center gap-1 text-sm bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <Crosshair className="w-4 h-4" /> تحديد مكاني تلقائياً
+                </button>
+              </div>
               <div className="h-64 rounded-xl overflow-hidden border-2 border-neutral-200 relative">
                 <MapContainer center={[30.0444, 31.2357]} zoom={11} style={{ height: '100%', width: '100%' }}>
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   />
                   <LocationMarker position={position} setPosition={setPosition} />
                 </MapContainer>

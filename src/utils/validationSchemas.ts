@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Common patterns
-const phoneRegex = /^(\+20|0)?1[0125][0-9]{8}$/; // Egyptian phone number pattern
+const phoneRegex = /^01[0125][0-9]{8}$/; // Egyptian phone number pattern (strictly 11 digits, starting with 010, 011, 012, or 015)
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export const loginSchema = z.object({
