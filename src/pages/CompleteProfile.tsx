@@ -34,7 +34,7 @@ function LocationMarker({ position, setPosition }: { position: [number, number] 
 
   React.useEffect(() => {
     if (position) {
-      map.flyTo(position, 15);
+      map.flyTo(position, 18);
     }
   }, [position, map]);
 
