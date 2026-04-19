@@ -220,6 +220,9 @@ const CompleteProfile = () => {
                   <Crosshair className="w-4 h-4" /> تحديد مكاني تلقائياً
                 </button>
               </div>
+              <p className="text-xs font-medium text-neutral-500 mb-2">
+                * ملاحظة: يمكنك سحب الخريطة والضغط على موقع منزلك بالضبط لتعديل الدبوس يدوياً
+              </p>
               <div className="h-64 rounded-xl overflow-hidden border-2 border-neutral-200 relative">
                 <MapContainer center={[30.0444, 31.2357]} zoom={11} style={{ height: '100%', width: '100%' }}>
                   <TileLayer
