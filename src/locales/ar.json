@@ -54,6 +54,7 @@
             "exclusiveDesc": "خصومات مميزة لفترة محدودة"
         },
         "communityItems": {
+            "247": "24/7",
             "community": "مجتمع بيتو كير",
             "communityDesc": "تفاعل مع مربين وأطباء وبادل الخبرات",
             "encyclopedia": "الموسوعة الطبية",
@@ -65,8 +66,7 @@
             "help": "مركز المساعدة",
             "helpDesc": "تواصل معنا للحصول على دعم فوري",
             "emergency": "حالات الطوارئ",
-            "emergencyDesc": "أرقام وعناوين الطوارئ البيطرية",
-            "247": "24/7"
+            "emergencyDesc": "أرقام وعناوين الطوارئ البيطرية"
         },
         "search": {
             "placeholder": "ابحث عن أطباء، خدمات، منتجات...",
@@ -744,7 +744,10 @@
                 "category": "إكسسوارات",
                 "description": "طوق مزود بتكنولوجيا GPS لتتبع حيوانك الأليف في أي مكان.",
                 "priceEGP": 800,
-                "accessories": ["بطارية إضافية", "شاحن USB"],
+                "accessories": [
+                    "بطارية إضافية",
+                    "شاحن USB"
+                ],
                 "essentials": [],
                 "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&height=600&fit=crop",
                 "storeName": "تكنولوجيا الحيوان"
@@ -804,20 +807,34 @@
         "fullNameRequired": "الاسم الكامل مطلوب"
     },
     "dashboard": {
-        "welcomeWithName": "مرحباً {{name}}",
-        "hello": "مرحباً",
+        "hello": "أهلاً بك {{name}}",
         "accountOverview": "نظرة عامة على حسابك",
         "messages": "الرسائل",
-        "recentActivity": "النشاط الأخير",
         "viewAll": "عرض الكل",
+        "quickActions": "إجراءات سريعة",
+        "consultation": "استشارة طبية",
+        "emergency": "طوارئ",
+        "recentActivity": "النشاط الأخير",
+        "appointmentWith": "موعد مع {{name}}",
+        "noRecentActivity": "لا يوجد نشاط أخير",
+        "pendingReviewsCount": "المراجعات المعلقة",
+        "noPendingReviews": "لا توجد مراجعات معلقة",
+        "notifications": "الإشعارات",
+        "noUpcomingAppointments": "ليس لديك مواعيد قادمة",
         "stats": {
-            "unreadMessages": "رسائل غير مقروءة",
-            "totalPets": "إجمالي الحيوانات",
-            "registeredPets": "حيوانات مسجلة",
+            "totalAppointments": "إجمالي المواعيد",
+            "completed": "مكتملة",
             "upcomingAppointments": "المواعيد القادمة",
             "within30Days": "خلال 30 يوماً",
-            "totalAppointments": "إجمالي المواعيد",
-            "completed": "مكتملة"
+            "totalPets": "إجمالي الحيوانات",
+            "registeredPets": "حيوانات مسجلة",
+            "unreadMessages": "رسائل غير مقروءة"
+        },
+        "reminders": {
+            "appointment": "تذكير بموعد",
+            "appointmentDesc": "لديك موعد طبي قريب.",
+            "vaccination": "تذكير بالتطعيم",
+            "vaccinationDesc": "حان موعد تطعيم حيوانك الأليف."
         }
     },
     "petstore": {

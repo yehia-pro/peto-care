@@ -86,7 +86,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
 
         const handleConnectError = async (error: Error) => {
-            console.error('Socket connection error:', error)
             setIsConnected(false)
 
             if (error.message && error.message.includes('Invalid authentication token')) {
@@ -125,6 +124,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
                     }, 1500)
                 }
             } else {
+                console.error('Socket connection error (non-token):', error);
                 toast.error('فشل الاتصال بالخادم')
             }
         }

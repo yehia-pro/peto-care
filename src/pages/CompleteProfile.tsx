@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { toast } from 'sonner'
-import { Phone, MapPin, Building, Home as HomeIcon, Crosshair } from 'lucide-react'
+import { Phone, MapPin, Building, Home as HomeIcon, Crosshair, Search } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../services/api'
 
@@ -53,6 +53,33 @@ const CompleteProfile = () => {
   const [address, setAddress] = useState('')
   const [position, setPosition] = useState<[number, number] | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Geocoding states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+
+  const handleSearch = async () => {
+    if (!searchQuery) return
+    setIsSearching(true)
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=eg`)
+      const data = await response.json()
+      setSearchResults(data)
+    } catch (e) {
+      toast.error('فشل في جلب النتائج')
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleSelectResult = (result: any) => {
+    const lat = parseFloat(result.lat)
+    const lon = parseFloat(result.lon)
+    setPosition([lat, lon])
+    setSearchResults([])
+    setSearchQuery(result.display_name)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,7 +250,49 @@ const CompleteProfile = () => {
               <p className="text-xs font-medium text-neutral-500 mb-2">
                 * ملاحظة: يمكنك سحب الخريطة والضغط على موقع منزلك بالضبط لتعديل الدبوس يدوياً
               </p>
-              <div className="h-64 rounded-xl overflow-hidden border-2 border-neutral-200 relative">
+
+              {/* Geocoding Search Bar */}
+              <div className="mb-4 relative">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => { e.key === 'Enter' && (e.preventDefault(), handleSearch()) }}
+                      placeholder="ابحث عن مدينة، شارع، أو معلم على الخريطة..."
+                      className="w-full pr-10 pl-4 py-2 rounded-xl border-2 border-neutral-200 focus:border-secondary-500 focus:ring-0 transition-colors text-sm"
+                    />
+                    <Search className="absolute right-3 top-2.5 w-5 h-5 text-neutral-400" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSearch}
+                    disabled={isSearching}
+                    className="bg-neutral-800 text-white px-4 py-2 rounded-xl disabled:opacity-50 text-sm font-medium transition-colors hover:bg-neutral-700"
+                  >
+                    {isSearching ? 'جاري...' : 'بحث'}
+                  </button>
+                </div>
+
+                {/* Dropdown for results */}
+                {searchResults.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {searchResults.map((result: any, idx: number) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectResult(result)}
+                        className="block w-full text-right px-4 py-3 hover:bg-neutral-50 border-b last:border-0 border-neutral-100 text-sm transition-colors text-neutral-700"
+                      >
+                        {result.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-64 rounded-xl overflow-hidden border-2 border-neutral-200 relative z-0">
                 <MapContainer center={[30.0444, 31.2357]} zoom={11} style={{ height: '100%', width: '100%' }}>
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

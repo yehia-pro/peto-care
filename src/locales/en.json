@@ -54,6 +54,7 @@
             "exclusiveDesc": "Special limited-time discounts"
         },
         "communityItems": {
+            "247": "24/7",
             "community": "Petto Care Community",
             "communityDesc": "Interact with breeders and doctors",
             "encyclopedia": "Medical Encyclopedia",
@@ -65,8 +66,7 @@
             "help": "Help Center",
             "helpDesc": "Contact us for immediate support",
             "emergency": "Emergencies",
-            "emergencyDesc": "Veterinary emergency contacts",
-            "247": "24/7"
+            "emergencyDesc": "Veterinary emergency contacts"
         },
         "search": {
             "placeholder": "Search doctors, services, products...",
@@ -744,7 +744,10 @@
                 "category": "Accessories",
                 "description": "GPS enabled collar to track your pet.",
                 "priceEGP": 800,
-                "accessories": ["Extra Battery", "USB Charger"],
+                "accessories": [
+                    "Extra Battery",
+                    "USB Charger"
+                ],
                 "essentials": [],
                 "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&height=600&fit=crop",
                 "storeName": "Pet Tech"
@@ -804,20 +807,34 @@
         "fullNameRequired": "Full Name is required"
     },
     "dashboard": {
-        "welcomeWithName": "Welcome {{name}}",
-        "hello": "Hello",
+        "hello": "Hello {{name}}",
         "accountOverview": "Account Overview",
         "messages": "Messages",
-        "recentActivity": "Recent Activity",
         "viewAll": "View All",
+        "quickActions": "Quick Actions",
+        "consultation": "Medical Consultation",
+        "emergency": "Emergency",
+        "recentActivity": "Recent Activity",
+        "appointmentWith": "Appointment with {{name}}",
+        "noRecentActivity": "No recent activity",
+        "pendingReviewsCount": "Pending Reviews",
+        "noPendingReviews": "No pending reviews",
+        "notifications": "Notifications",
+        "noUpcomingAppointments": "You have no upcoming appointments",
         "stats": {
-            "unreadMessages": "Unread Messages",
+            "totalAppointments": "Total Appointments",
+            "completed": "Completed",
+            "upcomingAppointments": "Upcoming Appointments",
+            "within30Days": "Within 30 days",
             "totalPets": "Total Pets",
             "registeredPets": "Registered Pets",
-            "upcomingAppointments": "Upcoming Appointments",
-            "within30Days": "Within 30 Days",
-            "totalAppointments": "Total Appointments",
-            "completed": "Completed"
+            "unreadMessages": "Unread format"
+        },
+        "reminders": {
+            "appointment": "Appointment Reminder",
+            "appointmentDesc": "You have an appointment coming up.",
+            "vaccination": "Vaccination Reminder",
+            "vaccinationDesc": "It's time for your pet's checkup."
         }
     },
     "petstore": {
