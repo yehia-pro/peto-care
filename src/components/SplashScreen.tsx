@@ -4,15 +4,15 @@ const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [stage, setStage] = useState<'animating' | 'fading'>('animating');
 
   useEffect(() => {
-    // Stage 1: Animation lasts for 3.5 seconds
+    // Stage 1: Animation lasts for 1.5 seconds
     const animTimer = setTimeout(() => {
       setStage('fading');
-    }, 3500);
+    }, 1500);
 
     // Stage 2: Fade out lasts for 0.5s, then we unmount
     const unmountTimer = setTimeout(() => {
       onComplete();
-    }, 4000);
+    }, 2000);
 
     return () => {
       clearTimeout(animTimer);
