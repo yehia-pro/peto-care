@@ -90,38 +90,63 @@ export default defineConfig({
             return 'vendor-react';
           }
 
-          // 3. Internationalization
+          // 3. Firebase (very large — its own chunk)
+          if (packageName.startsWith('firebase') ||
+            packageName === '@firebase') {
+            return 'vendor-firebase';
+          }
+
+          // 4. Supabase (large auth library)
+          if (packageName.startsWith('@supabase')) {
+            return 'vendor-supabase';
+          }
+
+          // 5. Socket.io (network layer)
+          if (packageName === 'socket.io-client' ||
+            packageName === 'engine.io-client' ||
+            packageName === 'socket.io-parser') {
+            return 'vendor-socket';
+          }
+
+          // 6. Internationalization
           if (packageName.startsWith('i18next') ||
             packageName === 'react-i18next') {
             return 'vendor-i18n';
           }
 
-          // 4. HTTP & State Management
+          // 7. HTTP & State Management
           if (packageName === 'axios' ||
             packageName === 'zustand') {
             return 'vendor-http';
           }
 
-          // 5. Icons
+          // 8. Icons
           if (packageName === 'lucide-react' ||
             packageName.includes('icon')) {
             return 'ui-icons';
           }
 
-          // 6. Utilities
+          // 9. Form validation
+          if (packageName === 'zod' ||
+            packageName === 'react-hook-form' ||
+            packageName === '@hookform') {
+            return 'vendor-forms';
+          }
+
+          // 10. Utilities
           if (packageName === 'date-fns' ||
             packageName === 'lodash' ||
             packageName.startsWith('lodash')) {
             return 'vendor-utils';
           }
 
-          // 7. UI Libraries (Sonner, etc.)
+          // 11. UI Libraries (Sonner, etc.)
           if (packageName === 'sonner' ||
             packageName.includes('toast')) {
             return 'ui-toast';
           }
 
-          // 8. Everything else
+          // 12. Everything else
           return 'vendor-libs';
         },
       },

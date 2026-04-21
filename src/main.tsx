@@ -45,6 +45,22 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '1.5rem', fontFamily: 'Arial' }}>جاري التحميل...</div>}>
       <App />
     </Suspense>
-    <Toaster position="top-center" richColors dir="rtl" />
+    <Toaster
+      position="top-center"
+      richColors
+      dir="rtl"
+      toastOptions={{
+        style: {
+          background: '#1e293b',
+          color: '#f8fafc',
+          border: '1px solid #334155',
+          fontFamily: "'Cairo', 'Tajawal', sans-serif",
+        },
+        classNames: {
+          success: 'toast-success',
+          error: 'toast-error',
+        },
+      }}
+    />
   </React.StrictMode>
 )

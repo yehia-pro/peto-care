@@ -90,8 +90,9 @@ export const UnifiedSupport = () => {
 
                     <form onSubmit={handleSupportSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">الاسم الكامل</label>
+                            <label htmlFor="support-name" className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">الاسم الكامل</label>
                             <input
+                                id="support-name"
                                 type="text"
                                 value={supportName}
                                 onChange={(e) => setSupportName(e.target.value)}
@@ -100,8 +101,9 @@ export const UnifiedSupport = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">البريد الإلكتروني</label>
+                            <label htmlFor="support-email" className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">البريد الإلكتروني</label>
                             <input
+                                id="support-email"
                                 type="email"
                                 value={supportEmail}
                                 onChange={(e) => setSupportEmail(e.target.value)}
@@ -110,8 +112,9 @@ export const UnifiedSupport = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">تفاصيل المشكلة</label>
+                            <label htmlFor="support-message" className="block text-sm font-bold text-gray-700 mb-1 font-['Tajawal']">تفاصيل المشكلة</label>
                             <textarea
+                                id="support-message"
                                 value={supportMessage}
                                 onChange={(e) => setSupportMessage(e.target.value)}
                                 rows={4}
