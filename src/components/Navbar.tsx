@@ -251,7 +251,7 @@ const Navbar = () => {
           <div className="flex items-center justify-between">
 
             {/* 1. BRAND LOGO - Enhanced with Animation */}
-            <Link to="/" className="flex items-center gap-3 group relative z-50">
+            <Link to="/" className="flex items-center gap-3 group relative z-50" aria-label={t('navbar.brand.name') || 'Home'}>
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-vet-primary)] to-[var(--color-vet-secondary)] rounded-2xl blur-md opacity-50 group-hover:opacity-75 transition-opacity"></div>
                 <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-vet-primary)] to-[var(--color-vet-secondary)] flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-900/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ring-2 ring-white/50">
@@ -372,6 +372,7 @@ const Navbar = () => {
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder={t('navbar.search.placeholder')}
+                          aria-label={t('navbar.search.placeholder') || "Search"}
                           className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-[var(--color-vet-primary)] focus:ring-2 focus:ring-[var(--color-vet-primary)]/20 outline-none transition-all font-['Tajawal'] text-sm"
                           autoFocus
                         />

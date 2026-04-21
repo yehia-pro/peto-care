@@ -31,13 +31,13 @@ const Footer = () => {
                             {t('footer.description')}
                         </p>
                         <div className="flex items-center gap-4">
-                            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
+                            <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
                                 <Facebook className="w-5 h-5" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
+                            <a href="#" aria-label="Twitter" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
                                 <Twitter className="w-5 h-5" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-pink-50 hover:text-pink-600 transition-all duration-300">
+                            <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-pink-50 hover:text-pink-600 transition-all duration-300">
                                 <Instagram className="w-5 h-5" />
                             </a>
                         </div>

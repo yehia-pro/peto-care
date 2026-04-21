@@ -112,7 +112,7 @@ function App() {
         <LanguageProvider>
           <SocketProvider>
             <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 text-neutral-800 relative overflow-x-hidden">
-              <div className="fixed inset-0 bg-gradient-to-br from-primary-100/30 via-secondary-100/30 to-accent-100/30 animate-pulse pointer-events-none z-0"></div>
+              <div className="fixed inset-0 bg-gradient-to-br from-primary-100/30 via-secondary-100/30 to-accent-100/30 pointer-events-none z-0"></div>
               <div className="relative z-10 min-h-screen">
                 <Navbar />
                 <main className="pt-24 min-h-[70vh] relative z-10">

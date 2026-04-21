@@ -8,11 +8,11 @@ const Home = () => {
   const { user } = useAuthStore()
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 relative overflow-x-hidden">
-      {/* Animated background elements */}
+      {/* Static background elements (animation removed for performance) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-secondary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-accent-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-secondary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-accent-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
       </div>
 
       {/* Hero Section */}
@@ -47,10 +47,12 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-3xl blur-2xl opacity-30 transform rotate-6"></div>
                 <div className="relative group">
                   <img
-                    src="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&h=800&fit=crop&q=80"
+                    src="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&h=800&fit=crop&q=80&fm=webp"
                     alt={t('home.vets.subtitle')}
                     width="800"
                     height="800"
+                    fetchPriority="high"
+                    loading="eager"
                     className="relative rounded-3xl shadow-2xl max-w-full h-auto transform group-hover:scale-110 transition-transform duration-700"
                     style={{
                       transformStyle: 'preserve-3d',
@@ -67,7 +69,7 @@ const Home = () => {
                   <div className="flex items-center space-x-2">
                     <Star className="w-6 h-6 text-accent-500 fill-current animate-pulse" />
                     <span className="font-bold text-2xl text-neutral-800">4.9</span>
-                    <span className="text-neutral-600 text-sm">{t('home.vets.subtitle')}</span>
+                    <span className="text-neutral-700 text-sm">{t('home.vets.subtitle')}</span>
                   </div>
                 </div>
               </div>
@@ -99,7 +101,7 @@ const Home = () => {
                   <Stethoscope className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.services.consultation')}</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   {t('home.services.surgery')}
                 </p>
               </Link>
@@ -115,7 +117,7 @@ const Home = () => {
                   <Heart className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.services.vaccination')}</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   {t('home.services.dental')}
                 </p>
               </Link>
@@ -145,7 +147,7 @@ const Home = () => {
                   <Users className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.vets.viewAll')}</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   {t('home.testimonials.title')}
                 </p>
               </Link>
