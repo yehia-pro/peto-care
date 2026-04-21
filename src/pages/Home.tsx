@@ -132,7 +132,7 @@ const Home = () => {
                 <Phone className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.services.emergency')}</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 {t('home.vets.title')}
               </p>
             </Link>
@@ -162,7 +162,7 @@ const Home = () => {
                 <MapPin className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.contact.title')}</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 {t('home.contact.subtitle')}
               </p>
             </Link>
@@ -176,7 +176,7 @@ const Home = () => {
                 <Heart className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold text-neutral-800 mb-3">{t('home.vets.viewAll')}</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 {t('home.services.consultation')}
               </p>
             </Link>

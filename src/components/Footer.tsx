@@ -27,19 +27,19 @@ const Footer = () => {
                                 {t('navbar.brand.name')}
                             </span>
                         </Link>
-                        <p className="text-gray-500 text-sm leading-relaxed">
+                        <p className="text-gray-600 text-sm leading-relaxed">
                             {t('footer.description')}
                         </p>
                         <div className="flex items-center gap-4">
-                            <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
+                            <button type="button" aria-label="Facebook" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
                                 <Facebook className="w-5 h-5" />
-                            </a>
-                            <a href="#" aria-label="Twitter" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
+                            </button>
+                            <button type="button" aria-label="Twitter" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-[var(--color-vet-primary)] transition-all duration-300">
                                 <Twitter className="w-5 h-5" />
-                            </a>
-                            <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-pink-50 hover:text-pink-600 transition-all duration-300">
+                            </button>
+                            <button type="button" aria-label="Instagram" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all duration-300">
                                 <Instagram className="w-5 h-5" />
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -140,13 +140,13 @@ const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-gray-400 text-sm text-center md:text-right">
+                    <p className="text-gray-500 text-sm text-center md:text-right">
                         © {currentYear} {t('navbar.brand.name')}. {t('footer.rightsReserved')}
                     </p>
-                    <div className="flex items-center gap-6 text-sm text-gray-400">
+                    <div className="flex items-center gap-6 text-sm text-gray-600">
                         <Link to="/privacy" className="hover:text-gray-600 transition-colors">{t('footer.privacyPolicy')}</Link>
                         <Link to="/terms" className="hover:text-gray-600 transition-colors">{t('footer.termsConditions')}</Link>
-                        <div className="flex items-center gap-1 text-red-500/80 bg-red-50 px-3 py-1 rounded-full text-xs font-medium">
+                        <div className="flex items-center gap-1 text-red-700 bg-red-50 px-3 py-1 rounded-full text-xs font-medium border border-red-100">
                             <Link to="/about" className="hover:underline">{t('footer.aboutUs')}</Link>
                         </div>
                     </div>
