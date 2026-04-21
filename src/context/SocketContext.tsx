@@ -54,9 +54,12 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
 
     useEffect(() => {
-        // Auto-connect when user is authenticated
+        // Auto-connect when user is authenticated, delayed to prioritize LCP
         if (user && token) {
-            connect()
+            const timeoutId = setTimeout(() => {
+                connect()
+            }, 2500)
+            return () => clearTimeout(timeoutId)
         } else {
             disconnect()
         }

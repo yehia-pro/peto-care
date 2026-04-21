@@ -52,7 +52,11 @@ const Navbar = () => {
 
   useEffect(() => {
     if (user) {
-      loadNotifications();
+      // Defer notification fetching to prioritize early render path (LCP)
+      const tId = setTimeout(() => {
+        loadNotifications();
+      }, 2500);
+      return () => clearTimeout(tId);
     }
   }, [user]);
 

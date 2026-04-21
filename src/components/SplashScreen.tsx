@@ -64,10 +64,12 @@ const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
            animation: typewriter 1s steps(15, end) forwards;
         }
         @keyframes progress-bar {
-          0% { width: 0; }
-          100% { width: 100%; }
+          0% { transform: scaleX(0); }
+          100% { transform: scaleX(1); }
         }
         .animate-progress-bar {
+           transform-origin: right;
+           width: 100%;
            animation: progress-bar 2s ease-in-out forwards;
         }
         @keyframes bounce-slow {

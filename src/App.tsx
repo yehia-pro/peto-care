@@ -7,7 +7,7 @@ import { SocketProvider } from './context/SocketContext'
 import { useLanguageStore } from './stores/languageStore'
 import { useAuthStore } from './stores/authStore'
 
-import { UnifiedSupport } from './components/UnifiedSupport'
+const UnifiedSupport = lazy(() => import('./components/UnifiedSupport').then(module => ({ default: module.UnifiedSupport })))
 import { ErrorBoundary } from './components/ErrorBoundary'
 import SplashScreen from './components/SplashScreen'
 
@@ -91,6 +91,28 @@ const OnboardingGuard = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>
 }
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isInitializing } = useAuthStore()
+
+  if (isInitializing) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="relative w-16 h-16 flex items-center justify-center bg-white rounded-2xl shadow-lg animate-pulse">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2C7 2 3 6 3 11c0 3.3 2 6 5 8 .9.6 1.3 1.6 1 2.6L8.5 24l3.1-1.6c1-.6 2.2-.6 3.2 0L18 24l-.5-2.4c-.3-1 .1-2 1-2.6 3-2 5-4.7 5-8 0-5-4-9-9-9z"></path>
+          </svg>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
+
 function App() {
   const { currentLanguage } = useLanguageStore()
   const { isAuthenticated, initializeGoogleAuth, isInitializing } = useAuthStore()
@@ -117,15 +139,6 @@ function App() {
                 <Navbar />
                 <main className="pt-24 min-h-[70vh] relative z-10">
                   <OnboardingGuard>
-                    {isInitializing ? (
-                      <div className="flex items-center justify-center min-h-[50vh]">
-                        <div className="relative w-16 h-16 flex items-center justify-center bg-white rounded-2xl shadow-lg animate-pulse">
-                          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2C7 2 3 6 3 11c0 3.3 2 6 5 8 .9.6 1.3 1.6 1 2.6L8.5 24l3.1-1.6c1-.6 2.2-.6 3.2 0L18 24l-.5-2.4c-.3-1 .1-2 1-2.6 3-2 5-4.7 5-8 0-5-4-9-9-9z"></path>
-                          </svg>
-                        </div>
-                      </div>
-                    ) : (
                       <Routes>
                         <Route path="/" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
                         <Route path="/services" element={<SuspenseWrapper><CustomerServices /></SuspenseWrapper>} />
@@ -156,68 +169,68 @@ function App() {
                         <Route path="/pending-approval" element={<SuspenseWrapper><PendingApproval /></SuspenseWrapper>} />
                         <Route
                           path="/dashboard"
-                          element={isAuthenticated ? <SuspenseWrapper><Dashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><Dashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/chat"
-                          element={isAuthenticated ? <SuspenseWrapper><Chat /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><Chat /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/appointments"
-                          element={isAuthenticated ? <SuspenseWrapper><Appointments /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><Appointments /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/vet-bookings"
-                          element={isAuthenticated ? <SuspenseWrapper><VetBookings /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><VetBookings /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route path="/no-pets" element={<SuspenseWrapper><NoPets /></SuspenseWrapper>} />
                         <Route
                           path="/pet-records"
-                          element={isAuthenticated ? <SuspenseWrapper><PetRecords /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><PetRecords /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminDashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin-dashboard"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminDashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin/transactions"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminTransactions /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminTransactions /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin/manage-pet-guides"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminManagePetGuides /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminManagePetGuides /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin/manage-diseases"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminManageDiseases /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminManageDiseases /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin/manage-coupons"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminCoupons /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminCoupons /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/admin/manage-stores"
-                          element={isAuthenticated ? <SuspenseWrapper><AdminManageStores /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><AdminManageStores /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/doctor-dashboard"
-                          element={isAuthenticated ? <SuspenseWrapper><DoctorDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><DoctorDashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/customer-dashboard"
-                          element={isAuthenticated ? <SuspenseWrapper><CustomerDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><CustomerDashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/petstore-dashboard"
-                          element={isAuthenticated ? <SuspenseWrapper><PetStoreDashboard /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><PetStoreDashboard /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route
                           path="/profile"
-                          element={isAuthenticated ? <SuspenseWrapper><Profile /></SuspenseWrapper> : <Navigate to="/login" replace />}
+                          element={<ProtectedRoute><SuspenseWrapper><Profile /></SuspenseWrapper></ProtectedRoute>}
                         />
                         <Route path="/about" element={<SuspenseWrapper><AboutUs /></SuspenseWrapper>} />
                         <Route path="/contact" element={<SuspenseWrapper><ContactUs /></SuspenseWrapper>} />
@@ -227,10 +240,9 @@ function App() {
                         <Route path="/community" element={<SuspenseWrapper><Community /></SuspenseWrapper>} />
                         <Route path="*" element={<SuspenseWrapper><Home /></SuspenseWrapper>} />
                       </Routes>
-                    )}
                   </OnboardingGuard>
                 </main>
-                <UnifiedSupport />
+                <SuspenseWrapper><UnifiedSupport /></SuspenseWrapper>
                 <Footer />
               </div>
             </div>
