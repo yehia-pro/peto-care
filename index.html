@@ -62,97 +62,104 @@
     }
     </script>
     
-    <!-- Critical CSS inline -->
+    <!-- Critical CSS: Clean Minimal Splash Screen -->
     <style>
-      /* Critical above-the-fold styles */
       html, body {
-        margin: 0;
-        padding: 0;
-        text-align: right;
-        direction: rtl;
-        font-family: 'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif';
+        margin: 0; padding: 0;
+        font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
       }
-      
-      #root {
-        min-height: 100vh;
-      }
-      
-      /* Beautiful Loading Screen */
-      .app-loader-container {
+      #root { min-height: 100vh; }
+
+      /* ─── Splash Screen ─────────────────────────── */
+      .peto-splash {
         position: fixed;
         inset: 0;
+        background: #ffffff;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 50%, #faf5ff 100%);
         z-index: 9999;
+        overflow: hidden;
       }
-      
-      .loader-logo-wrapper {
-        position: relative;
-        width: 120px;
-        height: 120px;
+
+      /* Corner leaf decorations */
+      .peto-corner {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0.75;
+      }
+      .peto-corner.tl { top: 0;    left: 0; }
+      .peto-corner.tr { top: 0;    right: 0;  transform: scaleX(-1); }
+      .peto-corner.bl { bottom: 0; left: 0;   transform: scaleY(-1); }
+      .peto-corner.br { bottom: 0; right: 0;  transform: scale(-1); }
+
+      /* Logo circle badge */
+      .peto-badge {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 55%, #34d399 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: white;
-        border-radius: 30px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        box-shadow:
+          0 24px 64px rgba(45,212,191,0.30),
+          0  8px 24px rgba(56,189,248,0.20);
+        animation: petoFloat 3s ease-in-out infinite;
         margin-bottom: 2rem;
-        animation: pulseLogo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
 
-      .loader-text {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(to right, #2563eb, #7c3aed);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.5rem;
+      @keyframes petoFloat {
+        0%,100% { transform: translateY(0); }
+        50%      { transform: translateY(-10px); }
       }
-      
-      .loader-subtext {
-        color: #64748b;
-        font-size: 1.2rem;
+
+      /* Text */
+      .peto-title {
+        font-size: 3rem;
+        font-weight: 900;
+        color: #1e293b;
+        letter-spacing: -1px;
+        font-family: 'Inter', -apple-system, sans-serif;
+        direction: ltr;
+        margin: 0;
+      }
+      .peto-line {
+        width: 52px;
+        height: 3px;
+        border-radius: 2px;
+        background: linear-gradient(to right, #38bdf8, #34d399);
+        margin: 10px auto;
+      }
+      .peto-subtitle {
+        font-size: 1.25rem;
+        color: #94a3b8;
         font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        font-family: 'Tajawal', sans-serif;
+        direction: rtl;
+        margin: 0;
       }
 
-      .loader-dots::after {
-        content: '...';
-        animation: ellipsis 1.5s infinite;
-        width: 1.5em;
-        text-align: left;
-        display: inline-block;
+      /* Bottom progress bar */
+      .peto-track {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 4px;
+        background: #f1f5f9;
       }
-
-      @keyframes pulseLogo {
-        0%, 100% {
-          transform: scale(1);
-          box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.15), 0 10px 10px -5px rgba(37, 99, 235, 0.05);
-        }
-        50% {
-          transform: scale(1.05);
-          box-shadow: 0 25px 30px -5px rgba(124, 58, 237, 0.2), 0 15px 15px -5px rgba(124, 58, 237, 0.1);
-        }
+      .peto-fill {
+        height: 100%;
+        background: linear-gradient(to right, #38bdf8, #2dd4bf, #34d399);
+        border-radius: 0 2px 2px 0;
+        animation: petoProgress 2.8s cubic-bezier(.4,0,.2,1) forwards;
       }
-
-      @keyframes ellipsis {
-        0% { content: ''; }
-        25% { content: '.'; }
-        50% { content: '..'; }
-        75% { content: '...'; }
+      @keyframes petoProgress {
+        0%   { width: 0%; }
+        100% { width: 100%; }
       }
     </style>
     
@@ -174,25 +181,64 @@
   </head>
   <body>
     <div id="root">
-      <!-- Loading state -->
-      <div class="app-loader-container">
-        <div class="loader-logo-wrapper">
-          <img
-            src="/icon-192.png"
-            alt="Peto Care"
-            width="80"
-            height="80"
-            style="width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));"
-            onerror="this.style.display='none'; this.parentNode.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'url(#g)\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><defs><linearGradient id=\'g\' x1=\'0%\' y1=\'0%\' x2=\'100%\' y2=\'100%\'><stop offset=\'0%\' stop-color=\'#2563eb\'/><stop offset=\'100%\' stop-color=\'#7c3aed\'/></linearGradient></defs><circle cx=\'11.5\' cy=\'3.5\' r=\'1.5\'/><circle cx=\'17.5\' cy=\'5.5\' r=\'1.5\'/><circle cx=\'5.5\' cy=\'5.5\' r=\'1.5\'/><circle cx=\'3.5\' cy=\'10.5\' r=\'1.5\'/><circle cx=\'19.5\' cy=\'10.5\' r=\'1.5\'/><path d=\'M12 21c-4 0-7-3-7-6 0-2 1.5-3.5 3-4.5 1-.7 2-1.5 4-1.5s3 .8 4 1.5c1.5 1 3 2.5 3 4.5 0 3-3 6-7 6z\'/></svg>';"
-          />
+      <div class="peto-splash">
+
+        <!-- Top-left corner -->
+        <svg class="peto-corner tl" width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <ellipse cx="32" cy="62" rx="13" ry="22" fill="#a7f3d0" transform="rotate(-35 32 62)"/>
+          <ellipse cx="62" cy="32" rx="11" ry="18" fill="#a7f3d0" transform="rotate(-65 62 32)"/>
+          <path d="M8 90 Q22 22 90 8" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <path d="M8 115 Q38 38 115 8" stroke="#6ee7b7" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+        </svg>
+
+        <!-- Top-right corner -->
+        <svg class="peto-corner tr" width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <ellipse cx="32" cy="62" rx="13" ry="22" fill="#a7f3d0" transform="rotate(-35 32 62)"/>
+          <ellipse cx="62" cy="32" rx="11" ry="18" fill="#a7f3d0" transform="rotate(-65 62 32)"/>
+          <path d="M8 90 Q22 22 90 8" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <path d="M8 115 Q38 38 115 8" stroke="#6ee7b7" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+        </svg>
+
+        <!-- Bottom-left corner -->
+        <svg class="peto-corner bl" width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <ellipse cx="32" cy="62" rx="13" ry="22" fill="#a7f3d0" transform="rotate(-35 32 62)"/>
+          <path d="M8 90 Q22 22 90 8" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        </svg>
+
+        <!-- Bottom-right corner -->
+        <svg class="peto-corner br" width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <ellipse cx="32" cy="62" rx="13" ry="22" fill="#a7f3d0" transform="rotate(-35 32 62)"/>
+          <path d="M8 90 Q22 22 90 8" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        </svg>
+
+        <!-- Paw badge -->
+        <div class="peto-badge">
+          <svg width="82" height="82" viewBox="0 0 100 100" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <!-- Main pad -->
+            <ellipse cx="50" cy="67" rx="22" ry="18"/>
+            <!-- Top center toe -->
+            <ellipse cx="50" cy="34" rx="9" ry="11"/>
+            <!-- Left inner toe -->
+            <ellipse cx="29" cy="44" rx="8" ry="10"/>
+            <!-- Right inner toe -->
+            <ellipse cx="71" cy="44" rx="8" ry="10"/>
+            <!-- Far left toe -->
+            <ellipse cx="16" cy="59" rx="6.5" ry="8.5"/>
+            <!-- Far right toe -->
+            <ellipse cx="84" cy="59" rx="6.5" ry="8.5"/>
+          </svg>
         </div>
-        <div class="loader-text">Welcome to peto care</div>
-        <div class="loader-subtext">
-          <span style="font-family: 'Caveat', cursive; font-size: 1.4rem; font-weight: bold; background: linear-gradient(to right, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; transform: rotate(-2deg) skewX(-5deg); letter-spacing: 1px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
-            Developed by yehia ayman
-          </span>
-          <span class="loader-dots" style="color: #64748b; font-family: 'Inter', sans-serif;"></span>
+
+        <!-- Text -->
+        <p class="peto-title">Peto Care</p>
+        <div class="peto-line"></div>
+        <p class="peto-subtitle">بيتو كير</p>
+
+        <!-- Progress bar -->
+        <div class="peto-track">
+          <div class="peto-fill"></div>
         </div>
+
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
