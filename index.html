@@ -156,23 +156,21 @@
       }
     </style>
     
-    <!-- Load ALL fonts in a single async request to avoid render-blocking -->
+    <!-- Load ALL fonts in a single async request — display=optional prevents CLS -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600&display=optional"
       rel="stylesheet"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600&display=optional"
         rel="stylesheet"
       />
     </noscript>
 
-    <!-- Preload critical hero LCP image -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&h=800&fit=crop&q=80&fm=webp" />
-    
+
   </head>
   <body>
     <div id="root">
