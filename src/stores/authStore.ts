@@ -178,39 +178,87 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initializeGoogleAuth: () => {
     import('../lib/supabase').then(({ supabase }) => {
-      // Check initial session
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-          set({ isInitializing: false });
-        }
-      });
 
+      // 1. Try to restore session from stored token (email/password users)
+      const storedToken = localStorage.getItem('token')
+      const storedUser = (() => {
+        try { return JSON.parse(localStorage.getItem('user') || 'null') } catch { return null }
+      })()
+
+      if (storedToken && storedUser) {
+        // Optimistically restore session — validate in background
+        set({ user: storedUser, token: storedToken, isAuthenticated: true, isInitializing: false })
+
+        // Silently verify token is still valid against backend
+        import('./authStore').then(() => {
+          import('../services/api').then(({ authAPI }) => {
+            authAPI.getProfile()
+              .then((res) => {
+                // Token still valid — update user data silently
+                const updatedUser = { ...storedUser, ...res.data }
+                localStorage.setItem('user', JSON.stringify(updatedUser))
+                set({ user: updatedUser })
+              })
+              .catch(() => {
+                // Token invalid — attempt Supabase refresh before logout
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                  if (session?.access_token) {
+                    localStorage.setItem('token', session.access_token)
+                    set({ token: session.access_token })
+                  } else {
+                    // Truly expired — clear quietly, no forced redirect
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('user')
+                    set({ user: null, token: null, isAuthenticated: false })
+                  }
+                })
+              })
+          })
+        })
+      } else {
+        // 2. No stored credentials — check Supabase session (Google login)
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            set({ isInitializing: false })
+          }
+        })
+      }
+
+      // 3. Listen for live auth state changes (Google OAuth)
       supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          const newToken = session.access_token;
-          localStorage.setItem('token', newToken);
-          set({ token: newToken });
-          
-          // Fetch backend profile data via access token
+          const newToken = session.access_token
+          localStorage.setItem('token', newToken)
+          set({ token: newToken })
+
           const baseUser: ExtendedUser = {
             email: session.user.email || '',
             id: session.user.id,
             fullName: session.user.user_metadata?.full_name || '',
             avatarUrl: session.user.user_metadata?.avatar_url || '',
             role: 'user'
-          };
-          
-          const fullProfile = await fetchFullProfile(baseUser);
-          
-          localStorage.setItem('user', JSON.stringify(fullProfile));
-          set({ user: fullProfile as any, isAuthenticated: true, isInitializing: false });
+          }
+
+          const fullProfile = await fetchFullProfile(baseUser)
+          localStorage.setItem('user', JSON.stringify(fullProfile))
+          set({ user: fullProfile as any, isAuthenticated: true, isInitializing: false })
+
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          // Supabase silently refreshed the token
+          localStorage.setItem('token', session.access_token)
+          set({ token: session.access_token })
+
         } else if (event === 'SIGNED_OUT') {
-          useAuthStore.getState().logout();
-          set({ isInitializing: false });
+          // Only clear if we don't have a backend token
+          const backendToken = localStorage.getItem('token')
+          if (!backendToken) {
+            useAuthStore.getState().logout()
+          }
+          set({ isInitializing: false })
         } else {
-          set({ isInitializing: false });
+          set({ isInitializing: false })
         }
-      });
-    });
+      })
+    })
   }
 }))

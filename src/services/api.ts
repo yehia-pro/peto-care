@@ -47,13 +47,19 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
-// Response interceptor — Handles 401 Unauthorized via Silent Refresh Queueing from Supabase
+// Response interceptor — Handles 401 Unauthorized via Silent Refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
 
+    // Only handle 401 errors, and skip retry storms
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // Skip token refresh for auth endpoints to avoid loops
+      if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register')) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject })
@@ -62,53 +68,57 @@ api.interceptors.response.use(
             originalRequest.headers.Authorization = 'Bearer ' + token
             return api(originalRequest)
           })
-          .catch((err) => {
-            return Promise.reject(err)
-          })
+          .catch((err) => Promise.reject(err))
       }
 
       originalRequest._retry = true
       isRefreshing = true
 
       try {
+        // Try Supabase session refresh first
         const { data, error: sessionError } = await supabase.auth.getSession()
 
-        if (sessionError || !data.session) {
-          throw new Error('No valid session')
+        if (!sessionError && data.session) {
+          const newToken = data.session.access_token
+          localStorage.setItem('token', newToken)
+          api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken
+          originalRequest.headers.Authorization = 'Bearer ' + newToken
+          processQueue(null, newToken)
+          return api(originalRequest)
         }
 
-        const newToken = data.session.access_token
-        localStorage.setItem('token', newToken)
+        // Supabase session not available — check if the stored backend token works
+        // (This covers email/password users who don't use Supabase auth)
+        const storedToken = localStorage.getItem('token')
+        if (storedToken && storedToken !== originalRequest.headers?.Authorization?.replace('Bearer ', '')) {
+          // Token in storage differs from the one used — retry with stored token
+          api.defaults.headers.common['Authorization'] = 'Bearer ' + storedToken
+          originalRequest.headers.Authorization = 'Bearer ' + storedToken
+          processQueue(null, storedToken)
+          return api(originalRequest)
+        }
 
-        api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken
-        originalRequest.headers.Authorization = 'Bearer ' + newToken
+        throw new Error('No valid session')
 
-        processQueue(null, newToken)
-
-        toast.success(
-          typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
-            ? 'تم تجديد الجلسة بنجاح في الخلفية'
-            : 'Session restored successfully in background',
-          { id: 'session-restore' }
-        )
-
-        return api(originalRequest)
       } catch (err) {
         processQueue(err, null)
 
-        toast.error(
-          typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
-            ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى'
-            : 'Session expired, please login again',
-          { id: 'session-expired' }
-        )
-
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 1500)
+        // Only show logout toast + clear session if we truly have no token
+        const finalToken = localStorage.getItem('token')
+        if (!finalToken) {
+          toast.error(
+            typeof window !== 'undefined' && document.documentElement.dir === 'rtl'
+              ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى'
+              : 'Session expired, please login again',
+            { id: 'session-expired' }
+          )
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          // Navigate without full page reload to avoid performance issues
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 1500)
+        }
 
         return Promise.reject(err)
       } finally {
@@ -119,6 +129,7 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
 
 // Auth API
 export const authAPI = {
