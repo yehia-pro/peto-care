@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -9,7 +9,6 @@ import { useAuthStore } from './stores/authStore'
 
 const UnifiedSupport = lazy(() => import('./components/UnifiedSupport').then(module => ({ default: module.UnifiedSupport })))
 import { ErrorBoundary } from './components/ErrorBoundary'
-import SplashScreen from './components/SplashScreen'
 
 // Lazy load all pages for better code splitting
 const Home = lazy(() => import('./pages/Home'))
@@ -116,7 +115,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   const { currentLanguage } = useLanguageStore()
   const { isAuthenticated, initializeGoogleAuth, isInitializing } = useAuthStore()
-  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
     initializeGoogleAuth()
@@ -129,7 +127,7 @@ function App() {
         v7_relativeSplatPath: true
       }}
     >
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {/* SplashScreen removed — HTML inline loader in index.html handles initial loading state */}
       <ErrorBoundary>
         <LanguageProvider>
           <SocketProvider>
